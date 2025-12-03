@@ -68,6 +68,7 @@ defmodule Charon.MixProject do
       source_url: @source_url,
       extras: [
         "README.md",
+        "LICENSE",
         "docs/architecture.md",
         "docs/design_decisions.md"
       ],
