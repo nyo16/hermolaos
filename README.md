@@ -1,10 +1,12 @@
-# Charon
+<p align="center">
+  <img src="images/header.jpeg" alt="Charon - An Elixir client for the Model Context Protocol (MCP)" width="100%">
+</p>
 
-[![Hex.pm](https://img.shields.io/hexpm/v/charon.svg)](https://hex.pm/packages/charon)
-[![Docs](https://img.shields.io/badge/hex-docs-blue.svg)](https://hexdocs.pm/charon)
-[![License](https://img.shields.io/hexpm/l/charon.svg)](LICENSE)
-
-> **Elixir client for the Model Context Protocol (MCP)** - Connect your Elixir applications to AI tools and resources through the standardized MCP protocol.
+<p align="center">
+  <a href="https://hex.pm/packages/charon"><img src="https://img.shields.io/hexpm/v/charon.svg" alt="Hex.pm"></a>
+  <a href="https://hexdocs.pm/charon"><img src="https://img.shields.io/badge/hex-docs-blue.svg" alt="Docs"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/hexpm/l/charon.svg" alt="License"></a>
+</p>
 
 An Elixir client for the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), enabling communication with AI tools and resources through a standardized protocol.
 
