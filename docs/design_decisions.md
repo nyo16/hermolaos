@@ -1,6 +1,6 @@
 # Design Decisions
 
-This document explains the key architectural and implementation decisions made in Charon.
+This document explains the key architectural and implementation decisions made in Hermolaos.
 
 ## Why Build From Scratch?
 
@@ -118,10 +118,10 @@ While existing Elixir MCP libraries exist (hermes_mcp, anubis_mcp), we chose to 
 
 ```elixir
 # Our approach
-Charon.call_tool(conn, "tool", args)
+Hermolaos.call_tool(conn, "tool", args)
 
 # Alternative (OOP-style)
-conn |> Charon.call_tool("tool", args)
+conn |> Hermolaos.call_tool("tool", args)
 ```
 
 **Rationale**:
@@ -134,7 +134,7 @@ conn |> Charon.call_tool("tool", args)
 **Decision**: Tagged tuples with custom error struct
 
 ```elixir
-{:error, %Charon.Error{code: -32601, message: "Method not found"}}
+{:error, %Hermolaos.Error{code: -32601, message: "Method not found"}}
 ```
 
 **Rationale**:
@@ -207,7 +207,7 @@ Messages.tools_call("name", %{})
 
 **Decision**: Separate unit and integration tests
 
-- `test/charon/` - Unit tests per module
+- `test/hermolaos/` - Unit tests per module
 - `test/integration/` - End-to-end protocol tests
 
 **Rationale**:

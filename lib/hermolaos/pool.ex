@@ -1,4 +1,4 @@
-defmodule Charon.Pool do
+defmodule Hermolaos.Pool do
   @moduledoc """
   Connection pool for managing multiple MCP connections.
 
@@ -14,13 +14,13 @@ defmodule Charon.Pool do
   ## Architecture
 
   The Pool uses a DynamicSupervisor to manage connections. Each connection
-  is a supervised `Charon.Client.Connection` process. The pool uses a
+  is a supervised `Hermolaos.Client.Connection` process. The pool uses a
   Registry for efficient connection lookup.
 
   ## Example
 
       # Start a pool
-      {:ok, pool} = Charon.Pool.start_link(
+      {:ok, pool} = Hermolaos.Pool.start_link(
         name: MyApp.MCPPool,
         connections: [
           [transport: :stdio, command: "server1"],
@@ -29,13 +29,13 @@ defmodule Charon.Pool do
       )
 
       # Use checkout/checkin pattern
-      {:ok, conn} = Charon.Pool.checkout(MyApp.MCPPool)
-      result = Charon.call_tool(conn, "my_tool", %{})
-      Charon.Pool.checkin(MyApp.MCPPool, conn)
+      {:ok, conn} = Hermolaos.Pool.checkout(MyApp.MCPPool)
+      result = Hermolaos.call_tool(conn, "my_tool", %{})
+      Hermolaos.Pool.checkin(MyApp.MCPPool, conn)
 
       # Or use transaction for automatic checkin
-      result = Charon.Pool.transaction(MyApp.MCPPool, fn conn ->
-        Charon.call_tool(conn, "my_tool", %{})
+      result = Hermolaos.Pool.transaction(MyApp.MCPPool, fn conn ->
+        Hermolaos.call_tool(conn, "my_tool", %{})
       end)
 
   ## Strategies
@@ -44,16 +44,16 @@ defmodule Charon.Pool do
   - `:random` - Randomly select a connection
   - `:least_busy` - Select connection with fewest pending requests
 
-  ## Pool as Charon Client
+  ## Pool as Hermolaos Client
 
   The pool itself implements the same interface as a single connection,
-  so you can use `Charon.call_tool/4` etc. directly with the pool name.
+  so you can use `Hermolaos.call_tool/4` etc. directly with the pool name.
   """
 
   use Supervisor
   require Logger
 
-  alias Charon.Client.Connection
+  alias Hermolaos.Client.Connection
 
   @type pool :: Supervisor.supervisor()
   @type strategy :: :round_robin | :random | :least_busy
@@ -83,7 +83,7 @@ defmodule Charon.Pool do
   ## Examples
 
       # Multiple connections with explicit configs
-      {:ok, pool} = Charon.Pool.start_link(
+      {:ok, pool} = Hermolaos.Pool.start_link(
         name: MyPool,
         connections: [
           [transport: :stdio, command: "server1"],
@@ -92,7 +92,7 @@ defmodule Charon.Pool do
       )
 
       # Pool of identical connections
-      {:ok, pool} = Charon.Pool.start_link(
+      {:ok, pool} = Hermolaos.Pool.start_link(
         name: MyPool,
         size: 4,
         connection_opts: [transport: :stdio, command: "my-server"]
@@ -116,9 +116,9 @@ defmodule Charon.Pool do
 
   ## Examples
 
-      {:ok, conn} = Charon.Pool.checkout(MyPool)
+      {:ok, conn} = Hermolaos.Pool.checkout(MyPool)
       # use conn...
-      Charon.Pool.checkin(MyPool, conn)
+      Hermolaos.Pool.checkin(MyPool, conn)
   """
   @spec checkout(pool(), keyword()) :: {:ok, Connection.t()} | {:error, :no_connections}
   def checkout(pool, _opts \\ []) do
@@ -152,8 +152,8 @@ defmodule Charon.Pool do
 
   ## Examples
 
-      result = Charon.Pool.transaction(MyPool, fn conn ->
-        Charon.call_tool(conn, "my_tool", %{arg: "value"})
+      result = Hermolaos.Pool.transaction(MyPool, fn conn ->
+        Hermolaos.call_tool(conn, "my_tool", %{arg: "value"})
       end)
   """
   @spec transaction(pool(), (Connection.t() -> result)) :: result when result: term()
@@ -198,7 +198,7 @@ defmodule Charon.Pool do
 
   ## Examples
 
-      {:ok, conn} = Charon.Pool.add_connection(MyPool, transport: :stdio, command: "new-server")
+      {:ok, conn} = Hermolaos.Pool.add_connection(MyPool, transport: :stdio, command: "new-server")
   """
   @spec add_connection(pool(), keyword()) :: {:ok, Connection.t()} | {:error, term()}
   def add_connection(pool, opts) do

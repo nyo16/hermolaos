@@ -1,4 +1,4 @@
-defmodule Charon.Transport.MessageBuffer do
+defmodule Hermolaos.Transport.MessageBuffer do
   @moduledoc """
   Buffer for handling newline-delimited JSON messages.
 
@@ -19,15 +19,15 @@ defmodule Charon.Transport.MessageBuffer do
 
   ## Examples
 
-      iex> buffer = Charon.Transport.MessageBuffer.new()
-      iex> {messages, buffer} = Charon.Transport.MessageBuffer.append(buffer, ~s({"id":1}\\n))
+      iex> buffer = Hermolaos.Transport.MessageBuffer.new()
+      iex> {messages, buffer} = Hermolaos.Transport.MessageBuffer.append(buffer, ~s({"id":1}\\n))
       iex> messages
       [%{"id" => 1}]
 
       # Partial messages are buffered
-      iex> buffer = Charon.Transport.MessageBuffer.new()
-      iex> {[], buffer} = Charon.Transport.MessageBuffer.append(buffer, ~s({"id":))
-      iex> {[%{"id" => 1}], _} = Charon.Transport.MessageBuffer.append(buffer, ~s(1}\\n))
+      iex> buffer = Hermolaos.Transport.MessageBuffer.new()
+      iex> {[], buffer} = Hermolaos.Transport.MessageBuffer.append(buffer, ~s({"id":))
+      iex> {[%{"id" => 1}], _} = Hermolaos.Transport.MessageBuffer.append(buffer, ~s(1}\\n))
   """
 
   @type t :: %__MODULE__{
@@ -53,8 +53,8 @@ defmodule Charon.Transport.MessageBuffer do
 
   ## Examples
 
-      iex> Charon.Transport.MessageBuffer.new()
-      %Charon.Transport.MessageBuffer{buffer: "", stats: %{messages_received: 0, bytes_received: 0, parse_errors: 0}}
+      iex> Hermolaos.Transport.MessageBuffer.new()
+      %Hermolaos.Transport.MessageBuffer{buffer: "", stats: %{messages_received: 0, bytes_received: 0, parse_errors: 0}}
   """
   @spec new() :: t()
   def new do
@@ -76,20 +76,20 @@ defmodule Charon.Transport.MessageBuffer do
   ## Examples
 
       # Single complete message
-      iex> buffer = Charon.Transport.MessageBuffer.new()
-      iex> {msgs, _} = Charon.Transport.MessageBuffer.append(buffer, ~s({"jsonrpc":"2.0"}\\n))
+      iex> buffer = Hermolaos.Transport.MessageBuffer.new()
+      iex> {msgs, _} = Hermolaos.Transport.MessageBuffer.append(buffer, ~s({"jsonrpc":"2.0"}\\n))
       iex> msgs
       [%{"jsonrpc" => "2.0"}]
 
       # Multiple messages in one chunk
-      iex> buffer = Charon.Transport.MessageBuffer.new()
-      iex> {msgs, _} = Charon.Transport.MessageBuffer.append(buffer, ~s({"id":1}\\n{"id":2}\\n))
+      iex> buffer = Hermolaos.Transport.MessageBuffer.new()
+      iex> {msgs, _} = Hermolaos.Transport.MessageBuffer.append(buffer, ~s({"id":1}\\n{"id":2}\\n))
       iex> length(msgs)
       2
 
       # Partial message preserved
-      iex> buffer = Charon.Transport.MessageBuffer.new()
-      iex> {[], buffer} = Charon.Transport.MessageBuffer.append(buffer, ~s({"partial":))
+      iex> buffer = Hermolaos.Transport.MessageBuffer.new()
+      iex> {[], buffer} = Hermolaos.Transport.MessageBuffer.append(buffer, ~s({"partial":))
       iex> buffer.buffer
       ~s({"partial":)
   """
@@ -120,8 +120,8 @@ defmodule Charon.Transport.MessageBuffer do
 
   ## Examples
 
-      iex> buffer = %Charon.Transport.MessageBuffer{buffer: "partial data"}
-      iex> {[], new_buffer} = Charon.Transport.MessageBuffer.reset(buffer)
+      iex> buffer = %Hermolaos.Transport.MessageBuffer{buffer: "partial data"}
+      iex> {[], new_buffer} = Hermolaos.Transport.MessageBuffer.reset(buffer)
       iex> new_buffer.buffer
       ""
   """
@@ -143,8 +143,8 @@ defmodule Charon.Transport.MessageBuffer do
 
   ## Examples
 
-      iex> buffer = %Charon.Transport.MessageBuffer{buffer: "12345"}
-      iex> Charon.Transport.MessageBuffer.buffer_size(buffer)
+      iex> buffer = %Hermolaos.Transport.MessageBuffer{buffer: "12345"}
+      iex> Hermolaos.Transport.MessageBuffer.buffer_size(buffer)
       5
   """
   @spec buffer_size(t()) :: non_neg_integer()
@@ -157,8 +157,8 @@ defmodule Charon.Transport.MessageBuffer do
 
   ## Examples
 
-      iex> buffer = Charon.Transport.MessageBuffer.new()
-      iex> Charon.Transport.MessageBuffer.stats(buffer)
+      iex> buffer = Hermolaos.Transport.MessageBuffer.new()
+      iex> Hermolaos.Transport.MessageBuffer.stats(buffer)
       %{messages_received: 0, bytes_received: 0, parse_errors: 0}
   """
   @spec stats(t()) :: stats()
@@ -169,12 +169,12 @@ defmodule Charon.Transport.MessageBuffer do
 
   ## Examples
 
-      iex> buffer = Charon.Transport.MessageBuffer.new()
-      iex> Charon.Transport.MessageBuffer.has_pending?(buffer)
+      iex> buffer = Hermolaos.Transport.MessageBuffer.new()
+      iex> Hermolaos.Transport.MessageBuffer.has_pending?(buffer)
       false
 
-      iex> buffer = %Charon.Transport.MessageBuffer{buffer: "pending"}
-      iex> Charon.Transport.MessageBuffer.has_pending?(buffer)
+      iex> buffer = %Hermolaos.Transport.MessageBuffer{buffer: "pending"}
+      iex> Hermolaos.Transport.MessageBuffer.has_pending?(buffer)
       true
   """
   @spec has_pending?(t()) :: boolean()

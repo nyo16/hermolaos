@@ -1,4 +1,4 @@
-defmodule Charon.Transport.Http do
+defmodule Hermolaos.Transport.Http do
   @moduledoc """
   HTTP/SSE transport for MCP communication with remote servers.
 
@@ -15,12 +15,12 @@ defmodule Charon.Transport.Http do
 
   ## Example
 
-      {:ok, transport} = Charon.Transport.Http.start_link(
+      {:ok, transport} = Hermolaos.Transport.Http.start_link(
         owner: self(),
         url: "http://localhost:3000/mcp"
       )
 
-      :ok = Charon.Transport.Http.send_message(transport, %{
+      :ok = Hermolaos.Transport.Http.send_message(transport, %{
         "jsonrpc" => "2.0",
         "id" => 1,
         "method" => "initialize",
@@ -50,7 +50,7 @@ defmodule Charon.Transport.Http do
   for high-throughput scenarios.
   """
 
-  @behaviour Charon.Transport
+  @behaviour Hermolaos.Transport
 
   use GenServer
   require Logger
@@ -109,13 +109,13 @@ defmodule Charon.Transport.Http do
 
   ## Examples
 
-      {:ok, pid} = Charon.Transport.Http.start_link(
+      {:ok, pid} = Hermolaos.Transport.Http.start_link(
         owner: self(),
         url: "http://localhost:3000/mcp",
         headers: [{"authorization", "Bearer token"}]
       )
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec start_link(keyword()) :: {:ok, pid()} | {:error, term()}
   def start_link(opts) do
     {name, opts} = Keyword.pop(opts, :name)
@@ -132,13 +132,13 @@ defmodule Charon.Transport.Http do
 
   ## Examples
 
-      :ok = Charon.Transport.Http.send_message(transport, %{
+      :ok = Hermolaos.Transport.Http.send_message(transport, %{
         "jsonrpc" => "2.0",
         "id" => 1,
         "method" => "tools/list"
       })
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec send_message(GenServer.server(), map()) :: :ok | {:error, term()}
   def send_message(transport, message) when is_map(message) do
     GenServer.call(transport, {:send, message}, :infinity)
@@ -149,7 +149,7 @@ defmodule Charon.Transport.Http do
 
   The HTTP request is performed in a background task.
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec cast_message(GenServer.server(), map()) :: :ok
   def cast_message(transport, message) when is_map(message) do
     GenServer.cast(transport, {:send, message})
@@ -158,7 +158,7 @@ defmodule Charon.Transport.Http do
   @doc """
   Closes the transport.
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec close(GenServer.server()) :: :ok
   def close(transport) do
     GenServer.stop(transport, :normal)
@@ -167,7 +167,7 @@ defmodule Charon.Transport.Http do
   @doc """
   Checks if the transport is connected.
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec connected?(GenServer.server()) :: boolean()
   def connected?(transport) do
     GenServer.call(transport, :connected?)
@@ -176,7 +176,7 @@ defmodule Charon.Transport.Http do
   @doc """
   Returns transport information and statistics.
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec info(GenServer.server()) :: map()
   def info(transport) do
     GenServer.call(transport, :info)
@@ -278,7 +278,7 @@ defmodule Charon.Transport.Http do
           |> update_stats(:responses_received)
 
         {:error, reason} ->
-          Logger.warning("[Charon.Transport.Http] Request failed: #{inspect(reason)}")
+          Logger.warning("[Hermolaos.Transport.Http] Request failed: #{inspect(reason)}")
           send(state.owner, {:transport_error, self(), reason})
           update_stats(state, :errors)
       end
@@ -296,7 +296,7 @@ defmodule Charon.Transport.Http do
 
   @impl GenServer
   def handle_info(msg, state) do
-    Logger.debug("[Charon.Transport.Http] Unexpected message: #{inspect(msg)}")
+    Logger.debug("[Hermolaos.Transport.Http] Unexpected message: #{inspect(msg)}")
     {:noreply, state}
   end
 

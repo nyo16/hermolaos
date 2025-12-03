@@ -1,12 +1,12 @@
-defmodule Charon.Integration.ProtocolTest do
+defmodule Hermolaos.Integration.ProtocolTest do
   @moduledoc """
   Integration tests for MCP protocol handling using mock server.
   """
 
   use ExUnit.Case, async: true
 
-  alias Charon.Test.MockMCPServer
-  alias Charon.Protocol.{JsonRpc, Messages}
+  alias Hermolaos.Test.MockMCPServer
+  alias Hermolaos.Protocol.{JsonRpc, Messages}
 
   describe "initialize handshake" do
     test "successful initialization" do

@@ -1,7 +1,7 @@
-defmodule Charon.Transport.MessageBufferTest do
+defmodule Hermolaos.Transport.MessageBufferTest do
   use ExUnit.Case, async: true
 
-  alias Charon.Transport.MessageBuffer
+  alias Hermolaos.Transport.MessageBuffer
 
   describe "new/0" do
     test "creates empty buffer" do

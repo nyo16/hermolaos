@@ -1,4 +1,4 @@
-defmodule Charon.Protocol.JsonRpc do
+defmodule Hermolaos.Protocol.JsonRpc do
   @moduledoc """
   JSON-RPC 2.0 encoding and decoding for MCP protocol messages.
 
@@ -14,11 +14,11 @@ defmodule Charon.Protocol.JsonRpc do
   ## Examples
 
       # Encoding a request
-      iex> Charon.Protocol.JsonRpc.encode_request(1, "tools/list", %{})
+      iex> Hermolaos.Protocol.JsonRpc.encode_request(1, "tools/list", %{})
       ~s({"id":1,"jsonrpc":"2.0","method":"tools/list","params":{}})
 
       # Decoding a response
-      iex> Charon.Protocol.JsonRpc.decode(~s({"jsonrpc":"2.0","id":1,"result":{"tools":[]}}))
+      iex> Hermolaos.Protocol.JsonRpc.decode(~s({"jsonrpc":"2.0","id":1,"result":{"tools":[]}}))
       {:ok, {:response, %{"jsonrpc" => "2.0", "id" => 1, "result" => %{"tools" => []}}}}
   """
 
@@ -76,10 +76,10 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.encode_request(1, "tools/list", %{})
+      iex> Hermolaos.Protocol.JsonRpc.encode_request(1, "tools/list", %{})
       ~s({"id":1,"jsonrpc":"2.0","method":"tools/list","params":{}})
 
-      iex> Charon.Protocol.JsonRpc.encode_request("abc", "ping", nil)
+      iex> Hermolaos.Protocol.JsonRpc.encode_request("abc", "ping", nil)
       ~s({"id":"abc","jsonrpc":"2.0","method":"ping"})
   """
   @spec encode_request(id(), String.t(), params() | nil) :: String.t()
@@ -102,7 +102,7 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.encode_notification("notifications/initialized", %{})
+      iex> Hermolaos.Protocol.JsonRpc.encode_notification("notifications/initialized", %{})
       ~s({"jsonrpc":"2.0","method":"notifications/initialized","params":{}})
   """
   @spec encode_notification(String.t(), params() | nil) :: String.t()
@@ -122,7 +122,7 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.encode_response(1, %{tools: []})
+      iex> Hermolaos.Protocol.JsonRpc.encode_response(1, %{tools: []})
       ~s({"id":1,"jsonrpc":"2.0","result":{"tools":[]}})
   """
   @spec encode_response(id(), term()) :: String.t()
@@ -143,7 +143,7 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.encode_error_response(1, -32600, "Invalid Request")
+      iex> Hermolaos.Protocol.JsonRpc.encode_error_response(1, -32600, "Invalid Request")
       ~s({"error":{"code":-32600,"message":"Invalid Request"},"id":1,"jsonrpc":"2.0"})
   """
   @spec encode_error_response(id() | nil, integer(), String.t(), term()) :: String.t()
@@ -171,13 +171,13 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.decode(~s({"jsonrpc":"2.0","id":1,"method":"ping"}))
+      iex> Hermolaos.Protocol.JsonRpc.decode(~s({"jsonrpc":"2.0","id":1,"method":"ping"}))
       {:ok, {:request, %{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"}}}
 
-      iex> Charon.Protocol.JsonRpc.decode(~s({"jsonrpc":"2.0","method":"notifications/initialized"}))
+      iex> Hermolaos.Protocol.JsonRpc.decode(~s({"jsonrpc":"2.0","method":"notifications/initialized"}))
       {:ok, {:notification, %{"jsonrpc" => "2.0", "method" => "notifications/initialized"}}}
 
-      iex> Charon.Protocol.JsonRpc.decode("invalid json")
+      iex> Hermolaos.Protocol.JsonRpc.decode("invalid json")
       {:error, :parse_error}
   """
   @spec decode(String.t()) :: {:ok, decoded_message()} | {:error, :parse_error | :invalid_message}
@@ -199,7 +199,7 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.decode!(~s({"jsonrpc":"2.0","id":1,"result":{}}))
+      iex> Hermolaos.Protocol.JsonRpc.decode!(~s({"jsonrpc":"2.0","id":1,"result":{}}))
       {:response, %{"jsonrpc" => "2.0", "id" => 1, "result" => %{}}}
   """
   @spec decode!(String.t()) :: decoded_message()
@@ -219,7 +219,7 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.classify_message(%{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"})
+      iex> Hermolaos.Protocol.JsonRpc.classify_message(%{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"})
       {:ok, {:request, %{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"}}}
   """
   @spec classify_message(map()) :: {:ok, decoded_message()} | {:error, :invalid_message}
@@ -251,7 +251,7 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.message_type(%{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"})
+      iex> Hermolaos.Protocol.JsonRpc.message_type(%{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"})
       :request
   """
   @spec message_type(map()) :: message_type() | :unknown
@@ -271,10 +271,10 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.valid_request?(%{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"})
+      iex> Hermolaos.Protocol.JsonRpc.valid_request?(%{"jsonrpc" => "2.0", "id" => 1, "method" => "ping"})
       true
 
-      iex> Charon.Protocol.JsonRpc.valid_request?(%{"id" => 1, "method" => "ping"})
+      iex> Hermolaos.Protocol.JsonRpc.valid_request?(%{"id" => 1, "method" => "ping"})
       false
   """
   @spec valid_request?(map()) :: boolean()
@@ -324,10 +324,10 @@ defmodule Charon.Protocol.JsonRpc do
 
   ## Examples
 
-      iex> Charon.Protocol.JsonRpc.get_id(%{"id" => 42})
+      iex> Hermolaos.Protocol.JsonRpc.get_id(%{"id" => 42})
       42
 
-      iex> Charon.Protocol.JsonRpc.get_id(%{"method" => "notify"})
+      iex> Hermolaos.Protocol.JsonRpc.get_id(%{"method" => "notify"})
       nil
   """
   @spec get_id(map()) :: id() | nil

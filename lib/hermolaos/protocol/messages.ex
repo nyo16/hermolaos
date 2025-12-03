@@ -1,4 +1,4 @@
-defmodule Charon.Protocol.Messages do
+defmodule Hermolaos.Protocol.Messages do
   @moduledoc """
   MCP message builders for all protocol methods.
 
@@ -63,7 +63,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.initialize(
+      msg = Hermolaos.Protocol.Messages.initialize(
         "2025-03-26",
         %{roots: %{listChanged: true}},
         %{name: "MyClient", version: "1.0.0"}
@@ -89,7 +89,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.initialized_notification()
+      msg = Hermolaos.Protocol.Messages.initialized_notification()
       # => %{"method" => "notifications/initialized"}
   """
   @spec initialized_notification() :: map()
@@ -104,7 +104,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.ping()
+      msg = Hermolaos.Protocol.Messages.ping()
       # => %{"method" => "ping"}
   """
   @spec ping() :: map()
@@ -127,8 +127,8 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.tools_list()
-      msg = Charon.Protocol.Messages.tools_list("cursor123")
+      msg = Hermolaos.Protocol.Messages.tools_list()
+      msg = Hermolaos.Protocol.Messages.tools_list("cursor123")
   """
   @spec tools_list(String.t() | nil) :: map()
   def tools_list(cursor \\ nil) do
@@ -148,7 +148,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.tools_call("read_file", %{"path" => "/tmp/test.txt"})
+      msg = Hermolaos.Protocol.Messages.tools_call("read_file", %{"path" => "/tmp/test.txt"})
   """
   @spec tools_call(String.t(), map()) :: map()
   def tools_call(name, arguments) when is_binary(name) and is_map(arguments) do
@@ -176,7 +176,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.resources_list()
+      msg = Hermolaos.Protocol.Messages.resources_list()
   """
   @spec resources_list(String.t() | nil) :: map()
   def resources_list(cursor \\ nil) do
@@ -210,7 +210,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.resources_read("file:///project/README.md")
+      msg = Hermolaos.Protocol.Messages.resources_read("file:///project/README.md")
   """
   @spec resources_read(String.t()) :: map()
   def resources_read(uri) when is_binary(uri) do
@@ -231,7 +231,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.resources_subscribe("file:///project/src/main.rs")
+      msg = Hermolaos.Protocol.Messages.resources_subscribe("file:///project/src/main.rs")
   """
   @spec resources_subscribe(String.t()) :: map()
   def resources_subscribe(uri) when is_binary(uri) do
@@ -273,7 +273,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.prompts_list()
+      msg = Hermolaos.Protocol.Messages.prompts_list()
   """
   @spec prompts_list(String.t() | nil) :: map()
   def prompts_list(cursor \\ nil) do
@@ -293,8 +293,8 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.prompts_get("code_review")
-      msg = Charon.Protocol.Messages.prompts_get("summarize", %{"language" => "elixir"})
+      msg = Hermolaos.Protocol.Messages.prompts_get("code_review")
+      msg = Hermolaos.Protocol.Messages.prompts_get("summarize", %{"language" => "elixir"})
   """
   @spec prompts_get(String.t(), map()) :: map()
   def prompts_get(name, arguments \\ %{}) when is_binary(name) do
@@ -319,7 +319,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.logging_set_level("debug")
+      msg = Hermolaos.Protocol.Messages.logging_set_level("debug")
   """
   @spec logging_set_level(String.t()) :: map()
   def logging_set_level(level) when is_binary(level) do
@@ -345,7 +345,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.completion_complete(
+      msg = Hermolaos.Protocol.Messages.completion_complete(
         %{"type" => "ref/prompt", "name" => "code_review"},
         %{"name" => "language", "value" => "eli"}
       )
@@ -377,8 +377,8 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.cancelled_notification(123)
-      msg = Charon.Protocol.Messages.cancelled_notification(123, "User cancelled")
+      msg = Hermolaos.Protocol.Messages.cancelled_notification(123)
+      msg = Hermolaos.Protocol.Messages.cancelled_notification(123, "User cancelled")
   """
   @spec cancelled_notification(integer() | String.t(), String.t() | nil) :: map()
   def cancelled_notification(request_id, reason \\ nil) do
@@ -401,7 +401,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.progress_notification("op123", 50, 100)
+      msg = Hermolaos.Protocol.Messages.progress_notification("op123", 50, 100)
   """
   @spec progress_notification(String.t() | integer(), number(), number() | nil) :: map()
   def progress_notification(progress_token, progress, total \\ nil) do
@@ -446,7 +446,7 @@ defmodule Charon.Protocol.Messages do
 
   ## Examples
 
-      msg = Charon.Protocol.Messages.roots_list_response([
+      msg = Hermolaos.Protocol.Messages.roots_list_response([
         %{"uri" => "file:///project", "name" => "Project Root"}
       ])
   """

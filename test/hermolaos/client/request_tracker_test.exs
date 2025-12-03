@@ -1,7 +1,7 @@
-defmodule Charon.Client.RequestTrackerTest do
+defmodule Hermolaos.Client.RequestTrackerTest do
   use ExUnit.Case, async: true
 
-  alias Charon.Client.RequestTracker
+  alias Hermolaos.Client.RequestTracker
 
   setup do
     {:ok, tracker} = RequestTracker.start_link(timeout: 5_000)
@@ -170,7 +170,7 @@ defmodule Charon.Client.RequestTrackerTest do
       :ok = RequestTracker.track(tracker, id, "slow_method", from)
 
       # Wait for timeout
-      assert_receive {_ref, {:error, %Charon.Protocol.Errors{code: -32001}}}, 200
+      assert_receive {_ref, {:error, %Hermolaos.Protocol.Errors{code: -32001}}}, 200
 
       # Request should no longer be pending
       refute RequestTracker.pending?(tracker, id)
@@ -188,7 +188,7 @@ defmodule Charon.Client.RequestTrackerTest do
       # Track with short custom timeout
       :ok = RequestTracker.track(tracker, id, "fast_timeout", from, 50)
 
-      assert_receive {_ref, {:error, %Charon.Protocol.Errors{code: -32001}}}, 200
+      assert_receive {_ref, {:error, %Hermolaos.Protocol.Errors{code: -32001}}}, 200
     end
 
     test "completing before timeout cancels timer" do

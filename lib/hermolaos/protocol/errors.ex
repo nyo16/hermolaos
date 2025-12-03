@@ -1,4 +1,4 @@
-defmodule Charon.Protocol.Errors do
+defmodule Hermolaos.Protocol.Errors do
   @moduledoc """
   JSON-RPC 2.0 and MCP error codes and error handling utilities.
 
@@ -24,13 +24,13 @@ defmodule Charon.Protocol.Errors do
   ## Examples
 
       # Create an error struct
-      error = Charon.Protocol.Errors.method_not_found("unknown/method")
+      error = Hermolaos.Protocol.Errors.method_not_found("unknown/method")
 
       # Convert to exception for raising
-      raise Charon.Protocol.Errors.to_exception(error)
+      raise Hermolaos.Protocol.Errors.to_exception(error)
 
       # Parse error from JSON-RPC response
-      {:ok, error} = Charon.Protocol.Errors.from_response(response)
+      {:ok, error} = Hermolaos.Protocol.Errors.from_response(response)
   """
 
   # ============================================================================
@@ -121,8 +121,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.parse_error()
-      %Charon.Protocol.Errors{code: -32700, message: "Parse error", data: nil}
+      iex> Hermolaos.Protocol.Errors.parse_error()
+      %Hermolaos.Protocol.Errors{code: -32700, message: "Parse error", data: nil}
   """
   @spec parse_error(term()) :: t()
   def parse_error(data \\ nil) do
@@ -134,8 +134,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.invalid_request("Missing method field")
-      %Charon.Protocol.Errors{code: -32600, message: "Invalid Request", data: "Missing method field"}
+      iex> Hermolaos.Protocol.Errors.invalid_request("Missing method field")
+      %Hermolaos.Protocol.Errors{code: -32600, message: "Invalid Request", data: "Missing method field"}
   """
   @spec invalid_request(term()) :: t()
   def invalid_request(data \\ nil) do
@@ -147,8 +147,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.method_not_found("unknown/method")
-      %Charon.Protocol.Errors{code: -32601, message: "Method not found: unknown/method", data: nil}
+      iex> Hermolaos.Protocol.Errors.method_not_found("unknown/method")
+      %Hermolaos.Protocol.Errors{code: -32601, message: "Method not found: unknown/method", data: nil}
   """
   @spec method_not_found(String.t()) :: t()
   def method_not_found(method) do
@@ -160,8 +160,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.invalid_params(%{field: "name", reason: "required"})
-      %Charon.Protocol.Errors{code: -32602, message: "Invalid params", data: %{field: "name", reason: "required"}}
+      iex> Hermolaos.Protocol.Errors.invalid_params(%{field: "name", reason: "required"})
+      %Hermolaos.Protocol.Errors{code: -32602, message: "Invalid params", data: %{field: "name", reason: "required"}}
   """
   @spec invalid_params(term()) :: t()
   def invalid_params(details \\ nil) do
@@ -173,8 +173,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.internal_error("Database connection failed")
-      %Charon.Protocol.Errors{code: -32603, message: "Internal error", data: "Database connection failed"}
+      iex> Hermolaos.Protocol.Errors.internal_error("Database connection failed")
+      %Hermolaos.Protocol.Errors{code: -32603, message: "Internal error", data: "Database connection failed"}
   """
   @spec internal_error(term()) :: t()
   def internal_error(details \\ nil) do
@@ -186,8 +186,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.connection_closed()
-      %Charon.Protocol.Errors{code: -32000, message: "Connection closed", data: nil}
+      iex> Hermolaos.Protocol.Errors.connection_closed()
+      %Hermolaos.Protocol.Errors{code: -32000, message: "Connection closed", data: nil}
   """
   @spec connection_closed(term()) :: t()
   def connection_closed(reason \\ nil) do
@@ -199,8 +199,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.request_timeout("tools/call", 30000)
-      %Charon.Protocol.Errors{code: -32001, message: "Request timeout: tools/call", data: %{timeout_ms: 30000}}
+      iex> Hermolaos.Protocol.Errors.request_timeout("tools/call", 30000)
+      %Hermolaos.Protocol.Errors{code: -32001, message: "Request timeout: tools/call", data: %{timeout_ms: 30000}}
   """
   @spec request_timeout(String.t(), integer() | nil) :: t()
   def request_timeout(method, timeout_ms \\ nil) do
@@ -213,8 +213,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.request_cancelled("User cancelled")
-      %Charon.Protocol.Errors{code: -32002, message: "Request cancelled", data: "User cancelled"}
+      iex> Hermolaos.Protocol.Errors.request_cancelled("User cancelled")
+      %Hermolaos.Protocol.Errors{code: -32002, message: "Request cancelled", data: "User cancelled"}
   """
   @spec request_cancelled(term()) :: t()
   def request_cancelled(reason \\ nil) do
@@ -226,8 +226,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.resource_not_found("file:///missing.txt")
-      %Charon.Protocol.Errors{code: -32003, message: "Resource not found: file:///missing.txt", data: nil}
+      iex> Hermolaos.Protocol.Errors.resource_not_found("file:///missing.txt")
+      %Hermolaos.Protocol.Errors{code: -32003, message: "Resource not found: file:///missing.txt", data: nil}
   """
   @spec resource_not_found(String.t()) :: t()
   def resource_not_found(uri) do
@@ -244,10 +244,10 @@ defmodule Charon.Protocol.Errors do
   ## Examples
 
       iex> response = %{"error" => %{"code" => -32601, "message" => "Method not found"}}
-      iex> Charon.Protocol.Errors.from_response(response)
-      {:ok, %Charon.Protocol.Errors{code: -32601, message: "Method not found", data: nil}}
+      iex> Hermolaos.Protocol.Errors.from_response(response)
+      {:ok, %Hermolaos.Protocol.Errors{code: -32601, message: "Method not found", data: nil}}
 
-      iex> Charon.Protocol.Errors.from_response(%{"result" => %{}})
+      iex> Hermolaos.Protocol.Errors.from_response(%{"result" => %{}})
       {:error, :not_an_error}
   """
   @spec from_response(map()) :: {:ok, t()} | {:error, :not_an_error | :invalid_error}
@@ -268,8 +268,8 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> error = %Charon.Protocol.Errors{code: -32600, message: "Invalid", data: nil}
-      iex> Charon.Protocol.Errors.to_map(error)
+      iex> error = %Hermolaos.Protocol.Errors{code: -32600, message: "Invalid", data: nil}
+      iex> Hermolaos.Protocol.Errors.to_map(error)
       %{"code" => -32600, "message" => "Invalid"}
   """
   @spec to_map(t()) :: map()
@@ -282,18 +282,18 @@ defmodule Charon.Protocol.Errors do
   end
 
   @doc """
-  Converts an error struct to a Charon.Error exception.
+  Converts an error struct to a Hermolaos.Error exception.
 
   ## Examples
 
-      iex> error = Charon.Protocol.Errors.method_not_found("ping")
-      iex> exception = Charon.Protocol.Errors.to_exception(error)
+      iex> error = Hermolaos.Protocol.Errors.method_not_found("ping")
+      iex> exception = Hermolaos.Protocol.Errors.to_exception(error)
       iex> exception.message
       "MCP Error -32601: Method not found: ping"
   """
-  @spec to_exception(t()) :: Charon.Error.t()
+  @spec to_exception(t()) :: Hermolaos.Error.t()
   def to_exception(%__MODULE__{} = error) do
-    %Charon.Error{code: error.code, message: error.message, data: error.data}
+    %Hermolaos.Error{code: error.code, message: error.message, data: error.data}
   end
 
   # ============================================================================
@@ -305,10 +305,10 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.code_to_name(-32700)
+      iex> Hermolaos.Protocol.Errors.code_to_name(-32700)
       :parse_error
 
-      iex> Charon.Protocol.Errors.code_to_name(-99999)
+      iex> Hermolaos.Protocol.Errors.code_to_name(-99999)
       :unknown
   """
   @spec code_to_name(integer()) :: error_code() | :unknown
@@ -328,10 +328,10 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.standard_error?(-32700)
+      iex> Hermolaos.Protocol.Errors.standard_error?(-32700)
       true
 
-      iex> Charon.Protocol.Errors.standard_error?(-32000)
+      iex> Hermolaos.Protocol.Errors.standard_error?(-32000)
       false
   """
   @spec standard_error?(integer()) :: boolean()
@@ -346,10 +346,10 @@ defmodule Charon.Protocol.Errors do
 
   ## Examples
 
-      iex> Charon.Protocol.Errors.retriable?(-32000)
+      iex> Hermolaos.Protocol.Errors.retriable?(-32000)
       true
 
-      iex> Charon.Protocol.Errors.retriable?(-32601)
+      iex> Hermolaos.Protocol.Errors.retriable?(-32601)
       false
   """
   @spec retriable?(integer() | t()) :: boolean()

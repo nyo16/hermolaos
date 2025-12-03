@@ -1,7 +1,7 @@
-defmodule Charon.Protocol.ErrorsTest do
+defmodule Hermolaos.Protocol.ErrorsTest do
   use ExUnit.Case, async: true
 
-  alias Charon.Protocol.Errors
+  alias Hermolaos.Protocol.Errors
 
   describe "error code constants" do
     test "returns correct error codes" do
@@ -168,12 +168,12 @@ defmodule Charon.Protocol.ErrorsTest do
   end
 
   describe "to_exception/1" do
-    test "converts error to Charon.Error exception" do
+    test "converts error to Hermolaos.Error exception" do
       error = Errors.method_not_found("test/method")
 
       exception = Errors.to_exception(error)
 
-      assert %Charon.Error{} = exception
+      assert %Hermolaos.Error{} = exception
       assert exception.code == -32601
       assert exception.message =~ "Method not found"
     end

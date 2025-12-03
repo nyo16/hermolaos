@@ -1,37 +1,37 @@
-defmodule Charon do
+defmodule Hermolaos do
   @moduledoc """
   MCP (Model Context Protocol) client for Elixir.
 
-  Charon provides a complete implementation of the Model Context Protocol,
+  Hermolaos provides a complete implementation of the Model Context Protocol,
   enabling Elixir applications to connect to MCP servers and access their
   tools, resources, and prompts.
 
   ## Quick Start
 
       # Connect to a local MCP server via stdio
-      {:ok, client} = Charon.connect(:stdio,
+      {:ok, client} = Hermolaos.connect(:stdio,
         command: "npx",
         args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
       )
 
       # List available tools
-      {:ok, tools} = Charon.list_tools(client)
+      {:ok, tools} = Hermolaos.list_tools(client)
 
       # Call a tool
-      {:ok, result} = Charon.call_tool(client, "read_file", %{"path" => "/tmp/test.txt"})
+      {:ok, result} = Hermolaos.call_tool(client, "read_file", %{"path" => "/tmp/test.txt"})
 
       # Disconnect when done
-      :ok = Charon.disconnect(client)
+      :ok = Hermolaos.disconnect(client)
 
   ## Transports
 
-  Charon supports two transport mechanisms:
+  Hermolaos supports two transport mechanisms:
 
   ### Stdio Transport
 
   Launches an MCP server as a subprocess and communicates via stdin/stdout.
 
-      {:ok, client} = Charon.connect(:stdio,
+      {:ok, client} = Hermolaos.connect(:stdio,
         command: "/path/to/server",
         args: ["--arg1", "value"],
         env: [{"DEBUG", "1"}]
@@ -41,7 +41,7 @@ defmodule Charon do
 
   Connects to a remote MCP server via HTTP/SSE.
 
-      {:ok, client} = Charon.connect(:http,
+      {:ok, client} = Hermolaos.connect(:http,
         url: "http://localhost:3000/mcp",
         headers: [{"authorization", "Bearer token"}]
       )
@@ -49,11 +49,11 @@ defmodule Charon do
   ## Error Handling
 
   All operations return `{:ok, result}` or `{:error, reason}`. Errors
-  are typically `Charon.Protocol.Errors` structs with error codes.
+  are typically `Hermolaos.Protocol.Errors` structs with error codes.
 
-      case Charon.call_tool(client, "unknown_tool", %{}) do
+      case Hermolaos.call_tool(client, "unknown_tool", %{}) do
         {:ok, result} -> handle_result(result)
-        {:error, %Charon.Protocol.Errors{code: -32601}} -> IO.puts("Tool not found")
+        {:error, %Hermolaos.Protocol.Errors{code: -32601}} -> IO.puts("Tool not found")
         {:error, reason} -> IO.puts("Error: \#{inspect(reason)}")
       end
 
@@ -62,7 +62,7 @@ defmodule Charon do
   To receive server notifications, configure a notification handler:
 
       defmodule MyHandler do
-        @behaviour Charon.Client.NotificationHandler
+        @behaviour Hermolaos.Client.NotificationHandler
 
         @impl true
         def handle_notification({:notification, method, params}, state) do
@@ -71,14 +71,14 @@ defmodule Charon do
         end
       end
 
-      {:ok, client} = Charon.connect(:stdio,
+      {:ok, client} = Hermolaos.connect(:stdio,
         command: "my-server",
         notification_handler: {MyHandler, %{}}
       )
   """
 
-  alias Charon.Client.Connection
-  alias Charon.Protocol.Messages
+  alias Hermolaos.Client.Connection
+  alias Hermolaos.Protocol.Messages
 
   @type client :: Connection.t()
   @type transport :: :stdio | :http
@@ -131,7 +131,7 @@ defmodule Charon do
 
   ## Common Options
 
-  - `:client_info` - Client identification map (default: Charon info)
+  - `:client_info` - Client identification map (default: Hermolaos info)
   - `:capabilities` - Client capabilities (default: standard)
   - `:notification_handler` - Module or `{module, state}` for notifications
   - `:timeout` - Default request timeout in ms (default: 30000)
@@ -140,23 +140,23 @@ defmodule Charon do
   ## Examples
 
       # Stdio with npx
-      {:ok, client} = Charon.connect(:stdio,
+      {:ok, client} = Hermolaos.connect(:stdio,
         command: "npx",
         args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
       )
 
       # HTTP with authentication
-      {:ok, client} = Charon.connect(:http,
+      {:ok, client} = Hermolaos.connect(:http,
         url: "https://api.example.com/mcp",
         headers: [{"authorization", "Bearer token123"}]
       )
 
       # Named connection
-      {:ok, _} = Charon.connect(:stdio,
+      {:ok, _} = Hermolaos.connect(:stdio,
         command: "my-server",
         name: MyApp.MCPClient
       )
-      # Later: Charon.list_tools(MyApp.MCPClient)
+      # Later: Hermolaos.list_tools(MyApp.MCPClient)
   """
   @spec connect(transport(), keyword()) :: {:ok, client()} | {:error, term()}
   def connect(transport, opts \\ [])
@@ -178,7 +178,7 @@ defmodule Charon do
 
   ## Examples
 
-      :ok = Charon.disconnect(client)
+      :ok = Hermolaos.disconnect(client)
   """
   @spec disconnect(client()) :: :ok
   def disconnect(client) do
@@ -197,7 +197,7 @@ defmodule Charon do
 
   ## Examples
 
-      :ready = Charon.status(client)
+      :ready = Hermolaos.status(client)
   """
   @spec status(client()) :: Connection.status()
   def status(client) do
@@ -209,7 +209,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, %{"name" => "MyServer", "version" => "1.0.0"}} = Charon.server_info(client)
+      {:ok, %{"name" => "MyServer", "version" => "1.0.0"}} = Hermolaos.server_info(client)
   """
   @spec server_info(client()) :: {:ok, map()} | {:error, :not_initialized}
   def server_info(client) do
@@ -221,8 +221,8 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, caps} = Charon.server_capabilities(client)
-      if Charon.Protocol.Capabilities.supports?(caps, :tools) do
+      {:ok, caps} = Hermolaos.server_capabilities(client)
+      if Hermolaos.Protocol.Capabilities.supports?(caps, :tools) do
         # Server supports tools
       end
   """
@@ -250,7 +250,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, %{tools: tools}} = Charon.list_tools(client)
+      {:ok, %{tools: tools}} = Hermolaos.list_tools(client)
       for tool <- tools do
         IO.puts("Tool: \#{tool.name} - \#{tool.description}")
       end
@@ -284,7 +284,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, result} = Charon.call_tool(client, "read_file", %{"path" => "/tmp/test.txt"})
+      {:ok, result} = Hermolaos.call_tool(client, "read_file", %{"path" => "/tmp/test.txt"})
 
       case result do
         %{isError: false, content: content} ->
@@ -322,7 +322,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, %{resources: resources}} = Charon.list_resources(client)
+      {:ok, %{resources: resources}} = Hermolaos.list_resources(client)
   """
   @spec list_resources(client(), keyword()) :: {:ok, map()} | {:error, term()}
   def list_resources(client, opts \\ []) do
@@ -344,7 +344,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, %{resourceTemplates: templates}} = Charon.list_resource_templates(client)
+      {:ok, %{resourceTemplates: templates}} = Hermolaos.list_resource_templates(client)
   """
   @spec list_resource_templates(client(), keyword()) :: {:ok, map()} | {:error, term()}
   def list_resource_templates(client, opts \\ []) do
@@ -371,7 +371,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, %{contents: contents}} = Charon.read_resource(client, "file:///project/README.md")
+      {:ok, %{contents: contents}} = Hermolaos.read_resource(client, "file:///project/README.md")
       for content <- contents do
         IO.puts(content.text)
       end
@@ -392,7 +392,7 @@ defmodule Charon do
 
   ## Examples
 
-      :ok = Charon.subscribe_resource(client, "file:///project/src/main.rs")
+      :ok = Hermolaos.subscribe_resource(client, "file:///project/src/main.rs")
   """
   @spec subscribe_resource(client(), String.t()) :: {:ok, map()} | {:error, term()}
   def subscribe_resource(client, uri) do
@@ -408,7 +408,7 @@ defmodule Charon do
 
   ## Examples
 
-      :ok = Charon.unsubscribe_resource(client, "file:///project/src/main.rs")
+      :ok = Hermolaos.unsubscribe_resource(client, "file:///project/src/main.rs")
   """
   @spec unsubscribe_resource(client(), String.t()) :: {:ok, map()} | {:error, term()}
   def unsubscribe_resource(client, uri) do
@@ -433,7 +433,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, %{prompts: prompts}} = Charon.list_prompts(client)
+      {:ok, %{prompts: prompts}} = Hermolaos.list_prompts(client)
   """
   @spec list_prompts(client(), keyword()) :: {:ok, map()} | {:error, term()}
   def list_prompts(client, opts \\ []) do
@@ -457,8 +457,8 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, prompt} = Charon.get_prompt(client, "code_review")
-      {:ok, prompt} = Charon.get_prompt(client, "summarize", %{"language" => "elixir"})
+      {:ok, prompt} = Hermolaos.get_prompt(client, "code_review")
+      {:ok, prompt} = Hermolaos.get_prompt(client, "summarize", %{"language" => "elixir"})
   """
   @spec get_prompt(client(), String.t(), map(), keyword()) :: {:ok, map()} | {:error, term()}
   def get_prompt(client, name, arguments \\ %{}, opts \\ []) do
@@ -478,7 +478,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, %{}} = Charon.ping(client)
+      {:ok, %{}} = Hermolaos.ping(client)
   """
   @spec ping(client(), keyword()) :: {:ok, map()} | {:error, term()}
   def ping(client, opts \\ []) do
@@ -499,7 +499,7 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, _} = Charon.set_log_level(client, "debug")
+      {:ok, _} = Hermolaos.set_log_level(client, "debug")
   """
   @spec set_log_level(client(), String.t()) :: {:ok, map()} | {:error, term()}
   def set_log_level(client, level) do
@@ -523,7 +523,7 @@ defmodule Charon do
 
       ref = %{"type" => "ref/prompt", "name" => "code_review"}
       argument = %{"name" => "language", "value" => "eli"}
-      {:ok, completions} = Charon.complete(client, ref, argument)
+      {:ok, completions} = Hermolaos.complete(client, ref, argument)
   """
   @spec complete(client(), map(), map(), keyword()) :: {:ok, map()} | {:error, term()}
   def complete(client, ref, argument, opts \\ []) do
@@ -546,8 +546,8 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, result} = Charon.call_tool(client, "browser_snapshot", %{})
-      text = Charon.get_text(result)
+      {:ok, result} = Hermolaos.call_tool(client, "browser_snapshot", %{})
+      text = Hermolaos.get_text(result)
   """
   @spec get_text(map()) :: String.t() | nil
   def get_text(%{content: content}) when is_list(content) do
@@ -570,8 +570,8 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, result} = Charon.call_tool(client, "browser_take_screenshot", %{})
-      case Charon.get_image(result) do
+      {:ok, result} = Hermolaos.call_tool(client, "browser_take_screenshot", %{})
+      case Hermolaos.get_image(result) do
         {:ok, image_data} -> File.write!("screenshot.png", image_data)
         :error -> IO.puts("No image in response")
       end
@@ -599,8 +599,8 @@ defmodule Charon do
 
   ## Examples
 
-      {:ok, result} = Charon.call_tool(client, "get_images", %{})
-      images = Charon.get_images(result)
+      {:ok, result} = Hermolaos.call_tool(client, "get_images", %{})
+      images = Hermolaos.get_images(result)
       Enum.with_index(images, fn data, i ->
         File.write!("image_\#{i}.png", data)
       end)
@@ -624,7 +624,7 @@ defmodule Charon do
 
   ## Examples
 
-      :ok = Charon.cancel(client, request_id)
+      :ok = Hermolaos.cancel(client, request_id)
   """
   @spec cancel(client(), integer() | String.t(), String.t() | nil) :: :ok | {:error, term()}
   def cancel(client, request_id, reason \\ nil) do

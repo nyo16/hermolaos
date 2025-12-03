@@ -1,4 +1,4 @@
-defmodule Charon.Error do
+defmodule Hermolaos.Error do
   @moduledoc """
   Exception struct for MCP/JSON-RPC errors.
 
@@ -8,9 +8,9 @@ defmodule Charon.Error do
   ## Examples
 
       try do
-        result = Charon.call_tool(client, "unknown_tool", %{})
+        result = Hermolaos.call_tool(client, "unknown_tool", %{})
       rescue
-        e in Charon.Error ->
+        e in Hermolaos.Error ->
           IO.puts("Tool call failed: \#{e.message}")
           IO.puts("Error code: \#{e.code}")
       end
@@ -34,12 +34,12 @@ defmodule Charon.Error do
   end
 
   @doc """
-  Creates a new Charon.Error from components.
+  Creates a new Hermolaos.Error from components.
 
   ## Examples
 
-      iex> Charon.Error.new(-32601, "Method not found")
-      %Charon.Error{code: -32601, message: "Method not found", data: nil}
+      iex> Hermolaos.Error.new(-32601, "Method not found")
+      %Hermolaos.Error{code: -32601, message: "Method not found", data: nil}
   """
   @spec new(integer(), String.t(), term()) :: t()
   def new(code, message, data \\ nil) do

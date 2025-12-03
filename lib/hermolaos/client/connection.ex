@@ -1,8 +1,8 @@
-defmodule Charon.Client.Connection do
+defmodule Hermolaos.Client.Connection do
   @moduledoc """
   GenServer managing a single MCP connection.
 
-  The Connection is the core component of the Charon client. It manages:
+  The Connection is the core component of the Hermolaos client. It manages:
 
   - Transport lifecycle (stdio or HTTP)
   - Protocol initialization handshake
@@ -22,25 +22,25 @@ defmodule Charon.Client.Connection do
   ## Usage
 
   Typically, you don't interact with Connection directly. Use the
-  `Charon` module for a higher-level API.
+  `Hermolaos` module for a higher-level API.
 
   ## Example
 
-      {:ok, conn} = Charon.Client.Connection.start_link(
+      {:ok, conn} = Hermolaos.Client.Connection.start_link(
         transport: :stdio,
         command: "npx",
         args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
       )
 
-      {:ok, tools} = Charon.Client.Connection.request(conn, "tools/list", %{})
+      {:ok, tools} = Hermolaos.Client.Connection.request(conn, "tools/list", %{})
   """
 
   use GenServer
   require Logger
 
-  alias Charon.Client.RequestTracker
-  alias Charon.Protocol.{JsonRpc, Messages, Capabilities, Errors}
-  alias Charon.Transport.{Stdio, Http}
+  alias Hermolaos.Client.RequestTracker
+  alias Hermolaos.Protocol.{JsonRpc, Messages, Capabilities, Errors}
+  alias Hermolaos.Transport.{Stdio, Http}
 
   # ============================================================================
   # Type Definitions
@@ -85,7 +85,7 @@ defmodule Charon.Client.Connection do
   @init_timeout 60_000
 
   @client_info %{
-    "name" => "Charon",
+    "name" => "Hermolaos",
     "version" => "0.1.0"
   }
 
@@ -112,7 +112,7 @@ defmodule Charon.Client.Connection do
 
   ### Common Options
 
-  - `:client_info` - Client identification (default: Charon info)
+  - `:client_info` - Client identification (default: Hermolaos info)
   - `:capabilities` - Client capabilities (default: standard capabilities)
   - `:notification_handler` - Module or `{module, state}` for handling notifications
   - `:timeout` - Default request timeout in ms (default: 30000)
@@ -121,14 +121,14 @@ defmodule Charon.Client.Connection do
   ## Examples
 
       # Stdio transport
-      {:ok, conn} = Charon.Client.Connection.start_link(
+      {:ok, conn} = Hermolaos.Client.Connection.start_link(
         transport: :stdio,
         command: "/usr/bin/python3",
         args: ["-m", "my_mcp_server"]
       )
 
       # HTTP transport
-      {:ok, conn} = Charon.Client.Connection.start_link(
+      {:ok, conn} = Hermolaos.Client.Connection.start_link(
         transport: :http,
         url: "http://localhost:3000/mcp"
       )
@@ -173,7 +173,7 @@ defmodule Charon.Client.Connection do
 
   ## Examples
 
-      {:ok, %{"tools" => tools}} = Charon.Client.Connection.request(conn, "tools/list", %{})
+      {:ok, %{"tools" => tools}} = Hermolaos.Client.Connection.request(conn, "tools/list", %{})
   """
   @spec request(t(), String.t(), map(), keyword()) :: {:ok, map()} | {:error, term()}
   def request(conn, method, params, opts \\ []) do
@@ -192,7 +192,7 @@ defmodule Charon.Client.Connection do
 
   ## Examples
 
-      :ok = Charon.Client.Connection.notify(conn, "notifications/cancelled", %{requestId: 1})
+      :ok = Hermolaos.Client.Connection.notify(conn, "notifications/cancelled", %{requestId: 1})
   """
   @spec notify(t(), String.t(), map()) :: :ok | {:error, term()}
   def notify(conn, method, params) do

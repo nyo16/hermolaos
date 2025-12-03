@@ -1,4 +1,4 @@
-defmodule Charon.Transport.Stdio do
+defmodule Hermolaos.Transport.Stdio do
   @moduledoc """
   Stdio transport for MCP communication with local subprocess servers.
 
@@ -14,13 +14,13 @@ defmodule Charon.Transport.Stdio do
 
   ## Example
 
-      {:ok, transport} = Charon.Transport.Stdio.start_link(
+      {:ok, transport} = Hermolaos.Transport.Stdio.start_link(
         owner: self(),
         command: "npx",
         args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
       )
 
-      :ok = Charon.Transport.Stdio.send_message(transport, %{
+      :ok = Hermolaos.Transport.Stdio.send_message(transport, %{
         "jsonrpc" => "2.0",
         "id" => 1,
         "method" => "initialize",
@@ -49,12 +49,12 @@ defmodule Charon.Transport.Stdio do
   - `:cd` - Working directory for the command (default: current directory)
   """
 
-  @behaviour Charon.Transport
+  @behaviour Hermolaos.Transport
 
   use GenServer
   require Logger
 
-  alias Charon.Transport.MessageBuffer
+  alias Hermolaos.Transport.MessageBuffer
 
   # ============================================================================
   # Type Definitions
@@ -98,13 +98,13 @@ defmodule Charon.Transport.Stdio do
 
   ## Examples
 
-      {:ok, pid} = Charon.Transport.Stdio.start_link(
+      {:ok, pid} = Hermolaos.Transport.Stdio.start_link(
         owner: self(),
         command: "/usr/bin/python3",
         args: ["-m", "mcp_server"]
       )
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec start_link(keyword()) :: {:ok, pid()} | {:error, term()}
   def start_link(opts) do
     {name, opts} = Keyword.pop(opts, :name)
@@ -120,13 +120,13 @@ defmodule Charon.Transport.Stdio do
 
   ## Examples
 
-      :ok = Charon.Transport.Stdio.send_message(transport, %{
+      :ok = Hermolaos.Transport.Stdio.send_message(transport, %{
         "jsonrpc" => "2.0",
         "id" => 1,
         "method" => "ping"
       })
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec send_message(GenServer.server(), map()) :: :ok | {:error, term()}
   def send_message(transport, message) when is_map(message) do
     GenServer.call(transport, {:send, message})
@@ -135,7 +135,7 @@ defmodule Charon.Transport.Stdio do
   @doc """
   Sends a message asynchronously (non-blocking).
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec cast_message(GenServer.server(), map()) :: :ok
   def cast_message(transport, message) when is_map(message) do
     GenServer.cast(transport, {:send, message})
@@ -144,7 +144,7 @@ defmodule Charon.Transport.Stdio do
   @doc """
   Closes the transport, terminating the subprocess.
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec close(GenServer.server()) :: :ok
   def close(transport) do
     GenServer.stop(transport, :normal)
@@ -153,7 +153,7 @@ defmodule Charon.Transport.Stdio do
   @doc """
   Checks if the transport is connected to a running subprocess.
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec connected?(GenServer.server()) :: boolean()
   def connected?(transport) do
     GenServer.call(transport, :connected?)
@@ -162,7 +162,7 @@ defmodule Charon.Transport.Stdio do
   @doc """
   Returns transport information and statistics.
   """
-  @impl Charon.Transport
+  @impl Hermolaos.Transport
   @spec info(GenServer.server()) :: map()
   def info(transport) do
     GenServer.call(transport, :info)
@@ -202,12 +202,12 @@ defmodule Charon.Transport.Stdio do
   def handle_info(:start_port, state) do
     case start_port(state) do
       {:ok, port} ->
-        Logger.debug("[Charon.Transport.Stdio] Started port for #{state.command}")
+        Logger.debug("[Hermolaos.Transport.Stdio] Started port for #{state.command}")
         send(state.owner, {:transport_ready, self()})
         {:noreply, %{state | port: port, connected: true}}
 
       {:error, reason} ->
-        Logger.error("[Charon.Transport.Stdio] Failed to start port: #{inspect(reason)}")
+        Logger.error("[Hermolaos.Transport.Stdio] Failed to start port: #{inspect(reason)}")
         send(state.owner, {:transport_error, self(), {:start_failed, reason}})
         {:stop, {:start_failed, reason}, state}
     end
@@ -227,7 +227,7 @@ defmodule Charon.Transport.Stdio do
 
   @impl GenServer
   def handle_info({port, {:exit_status, status}}, %{port: port} = state) do
-    Logger.debug("[Charon.Transport.Stdio] Process exited with status #{status}")
+    Logger.debug("[Hermolaos.Transport.Stdio] Process exited with status #{status}")
 
     # Flush any remaining buffered messages
     {messages, _buffer} = MessageBuffer.reset(state.buffer)
@@ -244,14 +244,14 @@ defmodule Charon.Transport.Stdio do
 
   @impl GenServer
   def handle_info({:EXIT, port, reason}, %{port: port} = state) do
-    Logger.warning("[Charon.Transport.Stdio] Port exited: #{inspect(reason)}")
+    Logger.warning("[Hermolaos.Transport.Stdio] Port exited: #{inspect(reason)}")
     send(state.owner, {:transport_closed, self(), reason})
     {:noreply, %{state | connected: false, port: nil}}
   end
 
   @impl GenServer
   def handle_info(msg, state) do
-    Logger.debug("[Charon.Transport.Stdio] Unexpected message: #{inspect(msg)}")
+    Logger.debug("[Hermolaos.Transport.Stdio] Unexpected message: #{inspect(msg)}")
     {:noreply, state}
   end
 
@@ -294,7 +294,7 @@ defmodule Charon.Transport.Stdio do
 
   @impl GenServer
   def handle_cast({:send, _message}, %{connected: false} = state) do
-    Logger.warning("[Charon.Transport.Stdio] Cannot send: not connected")
+    Logger.warning("[Hermolaos.Transport.Stdio] Cannot send: not connected")
     {:noreply, state}
   end
 
@@ -305,7 +305,7 @@ defmodule Charon.Transport.Stdio do
         Port.command(port, [json, "\n"])
 
       {:error, reason} ->
-        Logger.error("[Charon.Transport.Stdio] Failed to encode message: #{inspect(reason)}")
+        Logger.error("[Hermolaos.Transport.Stdio] Failed to encode message: #{inspect(reason)}")
     end
 
     {:noreply, state}
@@ -313,7 +313,7 @@ defmodule Charon.Transport.Stdio do
 
   @impl GenServer
   def terminate(reason, %{port: port}) when port != nil do
-    Logger.debug("[Charon.Transport.Stdio] Terminating: #{inspect(reason)}")
+    Logger.debug("[Hermolaos.Transport.Stdio] Terminating: #{inspect(reason)}")
 
     # Close stdin to signal EOF to the subprocess
     Port.close(port)

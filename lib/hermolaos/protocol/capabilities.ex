@@ -1,4 +1,4 @@
-defmodule Charon.Protocol.Capabilities do
+defmodule Hermolaos.Protocol.Capabilities do
   @moduledoc """
   MCP capability negotiation and validation.
 
@@ -31,10 +31,10 @@ defmodule Charon.Protocol.Capabilities do
   ## Example
 
       # Default client capabilities
-      caps = Charon.Protocol.Capabilities.default_client_capabilities()
+      caps = Hermolaos.Protocol.Capabilities.default_client_capabilities()
 
       # Check if server supports tools
-      if Charon.Protocol.Capabilities.supports?(server_caps, :tools) do
+      if Hermolaos.Protocol.Capabilities.supports?(server_caps, :tools) do
         # Can list and call tools
       end
   """
@@ -71,7 +71,7 @@ defmodule Charon.Protocol.Capabilities do
 
   ## Examples
 
-      caps = Charon.Protocol.Capabilities.default_client_capabilities()
+      caps = Hermolaos.Protocol.Capabilities.default_client_capabilities()
       # => %{"roots" => %{"listChanged" => true}}
   """
   @spec default_client_capabilities() :: client_capabilities()
@@ -88,7 +88,7 @@ defmodule Charon.Protocol.Capabilities do
 
   ## Examples
 
-      caps = Charon.Protocol.Capabilities.client_capabilities_with_sampling()
+      caps = Hermolaos.Protocol.Capabilities.client_capabilities_with_sampling()
       # => %{"roots" => %{"listChanged" => true}, "sampling" => %{}}
   """
   @spec client_capabilities_with_sampling() :: client_capabilities()
@@ -108,7 +108,7 @@ defmodule Charon.Protocol.Capabilities do
 
   ## Examples
 
-      caps = Charon.Protocol.Capabilities.build_client_capabilities(
+      caps = Hermolaos.Protocol.Capabilities.build_client_capabilities(
         roots: true,
         sampling: true
       )
@@ -153,11 +153,11 @@ defmodule Charon.Protocol.Capabilities do
   ## Examples
 
       iex> caps = %{"tools" => %{"listChanged" => true}}
-      iex> Charon.Protocol.Capabilities.supports?(caps, :tools)
+      iex> Hermolaos.Protocol.Capabilities.supports?(caps, :tools)
       true
 
       iex> caps = %{}
-      iex> Charon.Protocol.Capabilities.supports?(caps, :tools)
+      iex> Hermolaos.Protocol.Capabilities.supports?(caps, :tools)
       false
   """
   @spec supports?(map(), capability()) :: boolean()
@@ -172,11 +172,11 @@ defmodule Charon.Protocol.Capabilities do
   ## Examples
 
       iex> caps = %{"tools" => %{"listChanged" => true}}
-      iex> Charon.Protocol.Capabilities.supports_list_changed?(caps, :tools)
+      iex> Hermolaos.Protocol.Capabilities.supports_list_changed?(caps, :tools)
       true
 
       iex> caps = %{"tools" => %{}}
-      iex> Charon.Protocol.Capabilities.supports_list_changed?(caps, :tools)
+      iex> Hermolaos.Protocol.Capabilities.supports_list_changed?(caps, :tools)
       false
   """
   @spec supports_list_changed?(map(), capability()) :: boolean()
@@ -195,7 +195,7 @@ defmodule Charon.Protocol.Capabilities do
   ## Examples
 
       iex> caps = %{"resources" => %{"subscribe" => true}}
-      iex> Charon.Protocol.Capabilities.supports_subscribe?(caps)
+      iex> Hermolaos.Protocol.Capabilities.supports_subscribe?(caps)
       true
   """
   @spec supports_subscribe?(map()) :: boolean()
@@ -216,7 +216,7 @@ defmodule Charon.Protocol.Capabilities do
   ## Examples
 
       response = %{"capabilities" => %{"tools" => %{}}, "serverInfo" => %{...}}
-      {:ok, caps} = Charon.Protocol.Capabilities.from_init_response(response)
+      {:ok, caps} = Hermolaos.Protocol.Capabilities.from_init_response(response)
   """
   @spec from_init_response(map()) :: {:ok, map()} | {:error, :missing_capabilities}
   def from_init_response(%{"capabilities" => caps}) when is_map(caps) do
@@ -231,7 +231,7 @@ defmodule Charon.Protocol.Capabilities do
   ## Examples
 
       response = %{"serverInfo" => %{"name" => "MyServer", "version" => "1.0.0"}}
-      {:ok, info} = Charon.Protocol.Capabilities.server_info_from_response(response)
+      {:ok, info} = Hermolaos.Protocol.Capabilities.server_info_from_response(response)
   """
   @spec server_info_from_response(map()) :: {:ok, map()} | {:error, :missing_server_info}
   def server_info_from_response(%{"serverInfo" => info}) when is_map(info) do
@@ -246,7 +246,7 @@ defmodule Charon.Protocol.Capabilities do
   ## Examples
 
       response = %{"protocolVersion" => "2025-03-26"}
-      {:ok, version} = Charon.Protocol.Capabilities.protocol_version_from_response(response)
+      {:ok, version} = Hermolaos.Protocol.Capabilities.protocol_version_from_response(response)
   """
   @spec protocol_version_from_response(map()) :: {:ok, String.t()} | {:error, :missing_version}
   def protocol_version_from_response(%{"protocolVersion" => version}) when is_binary(version) do
@@ -272,10 +272,10 @@ defmodule Charon.Protocol.Capabilities do
 
   ## Examples
 
-      iex> Charon.Protocol.Capabilities.version_supported?("2025-03-26")
+      iex> Hermolaos.Protocol.Capabilities.version_supported?("2025-03-26")
       true
 
-      iex> Charon.Protocol.Capabilities.version_supported?("1.0.0")
+      iex> Hermolaos.Protocol.Capabilities.version_supported?("1.0.0")
       false
   """
   @spec version_supported?(String.t()) :: boolean()
@@ -299,11 +299,11 @@ defmodule Charon.Protocol.Capabilities do
   ## Examples
 
       # Check if we can list tools
-      :ok = Charon.Protocol.Capabilities.require(server_caps, [:tools])
+      :ok = Hermolaos.Protocol.Capabilities.require(server_caps, [:tools])
 
       # Check if we can subscribe to resources
       {:error, {:missing_capability, :resources}} =
-        Charon.Protocol.Capabilities.require(%{}, [:resources])
+        Hermolaos.Protocol.Capabilities.require(%{}, [:resources])
   """
   @spec require(map(), [capability()]) :: :ok | {:error, {:missing_capability, capability()}}
   def require(capabilities, required) when is_map(capabilities) and is_list(required) do

@@ -1,4 +1,4 @@
-defmodule Charon.Client.RequestTracker do
+defmodule Hermolaos.Client.RequestTracker do
   @moduledoc """
   Tracks pending JSON-RPC requests and correlates them with responses.
 
@@ -22,21 +22,21 @@ defmodule Charon.Client.RequestTracker do
 
   ## Example
 
-      {:ok, tracker} = Charon.Client.RequestTracker.start_link(timeout: 30_000)
+      {:ok, tracker} = Hermolaos.Client.RequestTracker.start_link(timeout: 30_000)
 
       # Track a request
-      id = Charon.Client.RequestTracker.next_id(tracker)
-      :ok = Charon.Client.RequestTracker.track(tracker, id, "tools/list", from)
+      id = Hermolaos.Client.RequestTracker.next_id(tracker)
+      :ok = Hermolaos.Client.RequestTracker.track(tracker, id, "tools/list", from)
 
       # When response arrives, complete the request
-      {:ok, from, method} = Charon.Client.RequestTracker.complete(tracker, id)
+      {:ok, from, method} = Hermolaos.Client.RequestTracker.complete(tracker, id)
       GenServer.reply(from, result)
   """
 
   use GenServer
   require Logger
 
-  alias Charon.Protocol.Errors
+  alias Hermolaos.Protocol.Errors
 
   # ============================================================================
   # Type Definitions
@@ -78,8 +78,8 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      {:ok, tracker} = Charon.Client.RequestTracker.start_link()
-      {:ok, tracker} = Charon.Client.RequestTracker.start_link(timeout: 60_000)
+      {:ok, tracker} = Hermolaos.Client.RequestTracker.start_link()
+      {:ok, tracker} = Hermolaos.Client.RequestTracker.start_link(timeout: 60_000)
   """
   @spec start_link(keyword()) :: {:ok, pid()} | {:error, term()}
   def start_link(opts \\ []) do
@@ -93,10 +93,10 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      id = Charon.Client.RequestTracker.next_id(tracker)
+      id = Hermolaos.Client.RequestTracker.next_id(tracker)
       # => 1
 
-      id = Charon.Client.RequestTracker.next_id(tracker)
+      id = Hermolaos.Client.RequestTracker.next_id(tracker)
       # => 2
   """
   @spec next_id(t()) :: id()
@@ -117,8 +117,8 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      :ok = Charon.Client.RequestTracker.track(tracker, 1, "tools/list", from)
-      :ok = Charon.Client.RequestTracker.track(tracker, 2, "tools/call", from, 60_000)
+      :ok = Hermolaos.Client.RequestTracker.track(tracker, 1, "tools/list", from)
+      :ok = Hermolaos.Client.RequestTracker.track(tracker, 2, "tools/call", from, 60_000)
   """
   @spec track(t(), id(), method(), from(), timeout() | nil) :: :ok
   def track(tracker, id, method, from, timeout \\ nil) do
@@ -132,7 +132,7 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      case Charon.Client.RequestTracker.complete(tracker, 1) do
+      case Hermolaos.Client.RequestTracker.complete(tracker, 1) do
         {:ok, from, "tools/list"} ->
           GenServer.reply(from, {:ok, result})
 
@@ -151,7 +151,7 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      case Charon.Client.RequestTracker.fail(tracker, 1, error) do
+      case Hermolaos.Client.RequestTracker.fail(tracker, 1, error) do
         {:ok, from, method} ->
           GenServer.reply(from, {:error, error})
 
@@ -169,7 +169,7 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      :ok = Charon.Client.RequestTracker.cancel(tracker, 1)
+      :ok = Hermolaos.Client.RequestTracker.cancel(tracker, 1)
   """
   @spec cancel(t(), id()) :: :ok
   def cancel(tracker, id) do
@@ -183,7 +183,7 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      failed = Charon.Client.RequestTracker.fail_all(tracker, {:error, :connection_closed})
+      failed = Hermolaos.Client.RequestTracker.fail_all(tracker, {:error, :connection_closed})
       for {from, method} <- failed do
         GenServer.reply(from, {:error, :connection_closed})
       end
@@ -198,7 +198,7 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      count = Charon.Client.RequestTracker.pending_count(tracker)
+      count = Hermolaos.Client.RequestTracker.pending_count(tracker)
       # => 5
   """
   @spec pending_count(t()) :: non_neg_integer()
@@ -211,7 +211,7 @@ defmodule Charon.Client.RequestTracker do
 
   ## Examples
 
-      stats = Charon.Client.RequestTracker.stats(tracker)
+      stats = Hermolaos.Client.RequestTracker.stats(tracker)
       # => %{requests_tracked: 100, requests_completed: 95, ...}
   """
   @spec stats(t()) :: stats()

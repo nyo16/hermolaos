@@ -1,7 +1,7 @@
-defmodule Charon.Transport.HttpTest do
+defmodule Hermolaos.Transport.HttpTest do
   use ExUnit.Case, async: true
 
-  alias Charon.Transport.Http
+  alias Hermolaos.Transport.Http
 
   describe "start_link/1" do
     test "starts with required options" do

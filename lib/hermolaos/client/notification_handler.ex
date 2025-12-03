@@ -1,4 +1,4 @@
-defmodule Charon.Client.NotificationHandler do
+defmodule Hermolaos.Client.NotificationHandler do
   @moduledoc """
   Behaviour for handling MCP server notifications and requests.
 
@@ -9,7 +9,7 @@ defmodule Charon.Client.NotificationHandler do
   ## Implementing a Handler
 
       defmodule MyApp.MCPHandler do
-        @behaviour Charon.Client.NotificationHandler
+        @behaviour Hermolaos.Client.NotificationHandler
 
         @impl true
         def handle_notification({:notification, "notifications/tools/list_changed", _params}, state) do
@@ -34,7 +34,7 @@ defmodule Charon.Client.NotificationHandler do
 
   ## Using the Handler
 
-      {:ok, conn} = Charon.Client.Connection.start_link(
+      {:ok, conn} = Hermolaos.Client.Connection.start_link(
         transport: :stdio,
         command: "my-server",
         notification_handler: {MyApp.MCPHandler, %{}}
@@ -82,7 +82,7 @@ defmodule Charon.Client.NotificationHandler do
   @optional_callbacks []
 end
 
-defmodule Charon.Client.DefaultNotificationHandler do
+defmodule Hermolaos.Client.DefaultNotificationHandler do
   @moduledoc """
   Default notification handler that logs events.
 
@@ -90,14 +90,14 @@ defmodule Charon.Client.DefaultNotificationHandler do
 
   ## Usage
 
-      {:ok, conn} = Charon.Client.Connection.start_link(
+      {:ok, conn} = Hermolaos.Client.Connection.start_link(
         transport: :stdio,
         command: "my-server",
-        notification_handler: Charon.Client.DefaultNotificationHandler
+        notification_handler: Hermolaos.Client.DefaultNotificationHandler
       )
   """
 
-  @behaviour Charon.Client.NotificationHandler
+  @behaviour Hermolaos.Client.NotificationHandler
 
   require Logger
 
@@ -170,7 +170,7 @@ defmodule Charon.Client.DefaultNotificationHandler do
   end
 end
 
-defmodule Charon.Client.PubSubNotificationHandler do
+defmodule Hermolaos.Client.PubSubNotificationHandler do
   @moduledoc """
   Notification handler that broadcasts events via Phoenix.PubSub or Registry.
 
@@ -178,11 +178,11 @@ defmodule Charon.Client.PubSubNotificationHandler do
 
   ## Usage with Phoenix.PubSub
 
-      {:ok, conn} = Charon.Client.Connection.start_link(
+      {:ok, conn} = Hermolaos.Client.Connection.start_link(
         transport: :stdio,
         command: "my-server",
         notification_handler: {
-          Charon.Client.PubSubNotificationHandler,
+          Hermolaos.Client.PubSubNotificationHandler,
           %{pubsub: MyApp.PubSub, topic: "mcp:events"}
         }
       )
@@ -196,17 +196,17 @@ defmodule Charon.Client.PubSubNotificationHandler do
 
   ## Usage with Registry
 
-      {:ok, conn} = Charon.Client.Connection.start_link(
+      {:ok, conn} = Hermolaos.Client.Connection.start_link(
         transport: :stdio,
         command: "my-server",
         notification_handler: {
-          Charon.Client.PubSubNotificationHandler,
+          Hermolaos.Client.PubSubNotificationHandler,
           %{registry: MyApp.MCPRegistry, key: "mcp_events"}
         }
       )
   """
 
-  @behaviour Charon.Client.NotificationHandler
+  @behaviour Hermolaos.Client.NotificationHandler
 
   @impl true
   def handle_notification(event, %{pubsub: pubsub, topic: topic} = state) do

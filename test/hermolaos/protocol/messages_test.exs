@@ -1,7 +1,7 @@
-defmodule Charon.Protocol.MessagesTest do
+defmodule Hermolaos.Protocol.MessagesTest do
   use ExUnit.Case, async: true
 
-  alias Charon.Protocol.Messages
+  alias Hermolaos.Protocol.Messages
 
   describe "default_protocol_version/0" do
     test "returns the default protocol version" do

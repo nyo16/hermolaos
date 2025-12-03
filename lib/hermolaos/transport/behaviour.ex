@@ -1,4 +1,4 @@
-defmodule Charon.Transport do
+defmodule Hermolaos.Transport do
   @moduledoc """
   Behaviour defining the transport interface for MCP communication.
 
@@ -13,25 +13,25 @@ defmodule Charon.Transport do
   To create a custom transport, implement this behaviour:
 
       defmodule MyApp.CustomTransport do
-        @behaviour Charon.Transport
+        @behaviour Hermolaos.Transport
         use GenServer
 
-        @impl Charon.Transport
+        @impl Hermolaos.Transport
         def start_link(opts) do
           GenServer.start_link(__MODULE__, opts)
         end
 
-        @impl Charon.Transport
+        @impl Hermolaos.Transport
         def send_message(transport, message) do
           GenServer.call(transport, {:send, message})
         end
 
-        @impl Charon.Transport
+        @impl Hermolaos.Transport
         def close(transport) do
           GenServer.stop(transport)
         end
 
-        @impl Charon.Transport
+        @impl Hermolaos.Transport
         def connected?(transport) do
           GenServer.call(transport, :connected?)
         end
@@ -157,7 +157,7 @@ defmodule Charon.Transport do
 
   ## Examples
 
-      Charon.Transport.send(transport_mod, transport_pid, message)
+      Hermolaos.Transport.send(transport_mod, transport_pid, message)
   """
   @spec send(module(), t(), message()) :: send_result()
   def send(module, transport, message) do
@@ -174,10 +174,10 @@ defmodule Charon.Transport do
 
   ## Examples
 
-      iex> Charon.Transport.valid_transport?(Charon.Transport.Stdio)
+      iex> Hermolaos.Transport.valid_transport?(Hermolaos.Transport.Stdio)
       true
 
-      iex> Charon.Transport.valid_transport?(String)
+      iex> Hermolaos.Transport.valid_transport?(String)
       false
   """
   @spec valid_transport?(module()) :: boolean()

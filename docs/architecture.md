@@ -1,22 +1,22 @@
-# Charon Architecture
+# Hermolaos Architecture
 
-This document describes the internal architecture of the Charon MCP client library.
+This document describes the internal architecture of the Hermolaos MCP client library.
 
 ## Overview
 
-Charon is an Elixir client for the Model Context Protocol (MCP). It provides a clean API for connecting to MCP servers and invoking tools, reading resources, and using prompts.
+Hermolaos is an Elixir client for the Model Context Protocol (MCP). It provides a clean API for connecting to MCP servers and invoking tools, reading resources, and using prompts.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      Application                            │
 ├─────────────────────────────────────────────────────────────┤
-│                       Charon API                            │
+│                       Hermolaos API                            │
 │    connect/2, list_tools/1, call_tool/3, ping/1, etc.       │
 ├─────────────────────────────────────────────────────────────┤
-│                    Charon.Pool (optional)                   │
+│                    Hermolaos.Pool (optional)                   │
 │            Connection pooling & load balancing              │
 ├─────────────────────────────────────────────────────────────┤
-│                  Charon.Client.Connection                   │
+│                  Hermolaos.Client.Connection                   │
 │           GenServer state machine per connection            │
 ├────────────────────────┬────────────────────────────────────┤
 │   Transport Layer      │       Protocol Layer               │
@@ -34,7 +34,7 @@ Charon is an Elixir client for the Model Context Protocol (MCP). It provides a c
 
 ## Module Structure
 
-### Public API (`lib/charon.ex`)
+### Public API (`lib/hermolaos.ex`)
 
 The main entry point for users. Provides a simple, consistent API that delegates to the underlying connection management.
 
@@ -46,7 +46,7 @@ Key functions:
 - `list_prompts/1`, `get_prompt/3` - Prompt operations
 - `ping/1` - Health check
 
-### Connection Management (`lib/charon/client/connection.ex`)
+### Connection Management (`lib/hermolaos/client/connection.ex`)
 
 A GenServer that manages the lifecycle of a single MCP connection. Implements a state machine:
 
@@ -66,7 +66,7 @@ States:
 
 ### Transport Layer
 
-#### Transport Behaviour (`lib/charon/transport/behaviour.ex`)
+#### Transport Behaviour (`lib/hermolaos/transport/behaviour.ex`)
 
 Defines the interface that all transports must implement:
 
@@ -76,13 +76,13 @@ Defines the interface that all transports must implement:
 @callback stop(transport :: t()) :: :ok
 ```
 
-#### Stdio Transport (`lib/charon/transport/stdio.ex`)
+#### Stdio Transport (`lib/hermolaos/transport/stdio.ex`)
 
 Uses Erlang ports to communicate with subprocess MCP servers:
 
 ```
 ┌─────────────────┐                    ┌─────────────────┐
-│  Charon Client  │                    │   MCP Server    │
+│  Hermolaos Client  │                    │   MCP Server    │
 │                 │                    │   (subprocess)  │
 │  ┌───────────┐  │     stdin/stdout   │                 │
 │  │   Port    │──┼────────────────────┼──▶ server.exe   │
@@ -96,13 +96,13 @@ Features:
 - Automatic process cleanup on connection close
 - Environment variable passthrough
 
-#### HTTP Transport (`lib/charon/transport/http.ex`)
+#### HTTP Transport (`lib/hermolaos/transport/http.ex`)
 
 Uses Req to communicate with HTTP-based MCP servers:
 
 ```
 ┌─────────────────┐                    ┌─────────────────┐
-│  Charon Client  │      HTTP POST     │   MCP Server    │
+│  Hermolaos Client  │      HTTP POST     │   MCP Server    │
 │                 │────────────────────▶│   (HTTP)        │
 │  ┌───────────┐  │◀────────────────────│                 │
 │  │    Req    │  │   JSON / SSE       │                 │
@@ -116,7 +116,7 @@ Features:
 - Session ID tracking via `Mcp-Session-Id` header
 - Connection pooling via Finch (Req's HTTP client)
 
-#### Message Buffer (`lib/charon/transport/message_buffer.ex`)
+#### Message Buffer (`lib/hermolaos/transport/message_buffer.ex`)
 
 Handles the newline-delimited JSON format used by MCP:
 
@@ -133,7 +133,7 @@ Features:
 
 ### Protocol Layer
 
-#### JSON-RPC (`lib/charon/protocol/json_rpc.ex`)
+#### JSON-RPC (`lib/hermolaos/protocol/json_rpc.ex`)
 
 Implements JSON-RPC 2.0 message encoding/decoding:
 
@@ -143,7 +143,7 @@ Message types:
 - **Response**: `{id, result}` - Success response
 - **Error Response**: `{id, error}` - Error response
 
-#### Messages (`lib/charon/protocol/messages.ex`)
+#### Messages (`lib/hermolaos/protocol/messages.ex`)
 
 Builds MCP-specific message payloads:
 
@@ -154,7 +154,7 @@ Messages.tools_call("tool_name", %{arg: "value"})
 Messages.resources_read("file:///path")
 ```
 
-#### Capabilities (`lib/charon/protocol/capabilities.ex`)
+#### Capabilities (`lib/hermolaos/protocol/capabilities.ex`)
 
 Handles capability negotiation between client and server:
 
@@ -173,7 +173,7 @@ Handles capability negotiation between client and server:
 }
 ```
 
-#### Errors (`lib/charon/protocol/errors.ex`)
+#### Errors (`lib/hermolaos/protocol/errors.ex`)
 
 Defines MCP error codes and provides helpers:
 
@@ -188,7 +188,7 @@ Defines MCP error codes and provides helpers:
 | -32002 | Resource Not Found | Resource doesn't exist |
 | -32003 | Capability Not Supported | Server doesn't support capability |
 
-### Request Tracking (`lib/charon/client/request_tracker.ex`)
+### Request Tracking (`lib/hermolaos/client/request_tracker.ex`)
 
 ETS-backed storage for correlating requests with responses:
 
@@ -209,13 +209,13 @@ Features:
 - Automatic timeout handling with per-request timers
 - Statistics tracking (tracked, completed, failed, timed out)
 
-### Notification Handling (`lib/charon/client/notification_handler.ex`)
+### Notification Handling (`lib/hermolaos/client/notification_handler.ex`)
 
 Behaviour for handling server-initiated messages:
 
 ```elixir
 defmodule MyHandler do
-  @behaviour Charon.Client.NotificationHandler
+  @behaviour Hermolaos.Client.NotificationHandler
 
   @impl true
   def handle_notification({:notification, "notifications/tools/list_changed", _}, state) do
@@ -229,13 +229,13 @@ Built-in handlers:
 - `DefaultNotificationHandler` - Logs notifications
 - `PubSubNotificationHandler` - Broadcasts via Phoenix.PubSub or Registry
 
-### Connection Pool (`lib/charon/pool.ex`)
+### Connection Pool (`lib/hermolaos/pool.ex`)
 
 Manages multiple connections for high-throughput scenarios:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Charon.Pool                            │
+│                      Hermolaos.Pool                            │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │              DynamicSupervisor                       │   │
@@ -254,7 +254,7 @@ Manages multiple connections for high-throughput scenarios:
 ### Making a Tool Call
 
 ```
-1. User calls Charon.call_tool(conn, "tool_name", args)
+1. User calls Hermolaos.call_tool(conn, "tool_name", args)
    │
 2. Connection.call_tool/3 called
    │
@@ -322,5 +322,5 @@ Client                                  Server
 - Timeout → Request fails with timeout error
 
 ### Request Errors
-- Server returns error → Wrapped in `Charon.Error`
-- Timeout → `{:error, %Charon.Error{code: -32001}}`
+- Server returns error → Wrapped in `Hermolaos.Error`
+- Timeout → `{:error, %Hermolaos.Error{code: -32001}}`

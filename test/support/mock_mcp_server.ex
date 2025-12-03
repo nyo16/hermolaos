@@ -1,4 +1,4 @@
-defmodule Charon.Test.MockMCPServer do
+defmodule Hermolaos.Test.MockMCPServer do
   @moduledoc """
   A mock MCP server for integration testing.
 
@@ -6,7 +6,7 @@ defmodule Charon.Test.MockMCPServer do
   or called directly from tests for simple protocol testing.
   """
 
-  alias Charon.Protocol.JsonRpc
+  alias Hermolaos.Protocol.JsonRpc
 
   @default_capabilities %{
     "tools" => %{},

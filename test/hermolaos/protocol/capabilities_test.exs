@@ -1,7 +1,7 @@
-defmodule Charon.Protocol.CapabilitiesTest do
+defmodule Hermolaos.Protocol.CapabilitiesTest do
   use ExUnit.Case, async: true
 
-  alias Charon.Protocol.Capabilities
+  alias Hermolaos.Protocol.Capabilities
 
   describe "default_client_capabilities/0" do
     test "returns default client capabilities" do

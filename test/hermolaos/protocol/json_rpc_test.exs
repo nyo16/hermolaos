@@ -1,7 +1,7 @@
-defmodule Charon.Protocol.JsonRpcTest do
+defmodule Hermolaos.Protocol.JsonRpcTest do
   use ExUnit.Case, async: true
 
-  alias Charon.Protocol.JsonRpc
+  alias Hermolaos.Protocol.JsonRpc
 
   describe "encode_request/3" do
     test "creates valid JSON-RPC request with params" do

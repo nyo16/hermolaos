@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="images/header.jpeg" alt="Charon - An Elixir client for the Model Context Protocol (MCP)" width="100%">
+  <img src="images/header.jpeg" alt="Hermolaos - An Elixir client for the Model Context Protocol (MCP)" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://hex.pm/packages/charon"><img src="https://img.shields.io/hexpm/v/charon.svg" alt="Hex.pm"></a>
-  <a href="https://hexdocs.pm/charon"><img src="https://img.shields.io/badge/hex-docs-blue.svg" alt="Docs"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/hexpm/l/charon.svg" alt="License"></a>
+  <a href="https://hex.pm/packages/hermolaos"><img src="https://img.shields.io/hexpm/v/hermolaos.svg" alt="Hex.pm"></a>
+  <a href="https://hexdocs.pm/hermolaos"><img src="https://img.shields.io/badge/hex-docs-blue.svg" alt="Docs"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/hexpm/l/hermolaos.svg" alt="License"></a>
 </p>
 
 An Elixir client for the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), enabling communication with AI tools and resources through a standardized protocol.
@@ -26,12 +26,12 @@ An Elixir client for the [Model Context Protocol (MCP)](https://modelcontextprot
 
 ## Installation
 
-Add `charon` to your list of dependencies in `mix.exs`:
+Add `hermolaos` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:charon, "~> 0.1.0"}
+    {:hermolaos, "~> 0.3.0"}
   ]
 end
 ```
@@ -42,31 +42,31 @@ end
 
 ```elixir
 # Connect to a local MCP server via subprocess
-{:ok, conn} = Charon.connect(:stdio,
+{:ok, conn} = Hermolaos.connect(:stdio,
   command: "npx",
   args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
 )
 
 # List available tools
-{:ok, %{tools: tools}} = Charon.list_tools(conn)
+{:ok, %{tools: tools}} = Hermolaos.list_tools(conn)
 
 # Call a tool
-{:ok, result} = Charon.call_tool(conn, "read_file", %{path: "/tmp/test.txt"})
+{:ok, result} = Hermolaos.call_tool(conn, "read_file", %{path: "/tmp/test.txt"})
 
 # Disconnect when done
-:ok = Charon.disconnect(conn)
+:ok = Hermolaos.disconnect(conn)
 ```
 
 ### Connecting to an HTTP Server
 
 ```elixir
 # Connect to a remote MCP server via HTTP
-{:ok, conn} = Charon.connect(:http,
+{:ok, conn} = Hermolaos.connect(:http,
   url: "http://localhost:3000/mcp"
 )
 
 # Use the same API as stdio
-{:ok, %{tools: tools}} = Charon.list_tools(conn)
+{:ok, %{tools: tools}} = Hermolaos.list_tools(conn)
 ```
 
 ## API Reference
@@ -75,36 +75,36 @@ end
 
 ```elixir
 # Connect with options
-{:ok, conn} = Charon.connect(:stdio, command: "server", args: ["--flag"])
-{:ok, conn} = Charon.connect(:http, url: "http://localhost:3000/mcp")
+{:ok, conn} = Hermolaos.connect(:stdio, command: "server", args: ["--flag"])
+{:ok, conn} = Hermolaos.connect(:http, url: "http://localhost:3000/mcp")
 
 # Disconnect
-:ok = Charon.disconnect(conn)
+:ok = Hermolaos.disconnect(conn)
 
 # Health check
-{:ok, %{}} = Charon.ping(conn)
+{:ok, %{}} = Hermolaos.ping(conn)
 
 # Get connection status
-:ready = Charon.status(conn)
+:ready = Hermolaos.status(conn)
 ```
 
 ### Tools
 
 ```elixir
 # List all available tools
-{:ok, %{tools: tools}} = Charon.list_tools(conn)
+{:ok, %{tools: tools}} = Hermolaos.list_tools(conn)
 
 # Call a tool with arguments
-{:ok, result} = Charon.call_tool(conn, "tool_name", %{arg1: "value"})
+{:ok, result} = Hermolaos.call_tool(conn, "tool_name", %{arg1: "value"})
 
 # With custom timeout
-{:ok, result} = Charon.call_tool(conn, "slow_tool", %{}, timeout: 60_000)
+{:ok, result} = Hermolaos.call_tool(conn, "slow_tool", %{}, timeout: 60_000)
 
 # Extract text from result
-text = Charon.get_text(result)
+text = Hermolaos.get_text(result)
 
 # Extract image from result (returns decoded binary)
-{:ok, image_data} = Charon.get_image(result)
+{:ok, image_data} = Hermolaos.get_image(result)
 File.write!("output.png", image_data)
 ```
 
@@ -112,20 +112,20 @@ File.write!("output.png", image_data)
 
 ```elixir
 # List available resources
-{:ok, %{resources: resources}} = Charon.list_resources(conn)
+{:ok, %{resources: resources}} = Hermolaos.list_resources(conn)
 
 # Read a specific resource
-{:ok, %{contents: contents}} = Charon.read_resource(conn, "file:///path/to/file")
+{:ok, %{contents: contents}} = Hermolaos.read_resource(conn, "file:///path/to/file")
 ```
 
 ### Prompts
 
 ```elixir
 # List available prompts
-{:ok, %{prompts: prompts}} = Charon.list_prompts(conn)
+{:ok, %{prompts: prompts}} = Hermolaos.list_prompts(conn)
 
 # Get a prompt with arguments
-{:ok, %{messages: messages}} = Charon.get_prompt(conn, "prompt_name", %{arg: "value"})
+{:ok, %{messages: messages}} = Hermolaos.get_prompt(conn, "prompt_name", %{arg: "value"})
 ```
 
 ## Connection Options
@@ -133,7 +133,7 @@ File.write!("output.png", image_data)
 ### Stdio Transport
 
 ```elixir
-Charon.connect(:stdio,
+Hermolaos.connect(:stdio,
   command: "path/to/server",    # Required: executable path
   args: ["--flag", "value"],    # Optional: command line arguments
   env: %{"VAR" => "value"},     # Optional: environment variables
@@ -144,7 +144,7 @@ Charon.connect(:stdio,
 ### HTTP Transport
 
 ```elixir
-Charon.connect(:http,
+Hermolaos.connect(:http,
   url: "http://localhost:3000/mcp",  # Required: server URL
   headers: [{"authorization", "Bearer token"}],  # Optional: custom headers
   timeout: 30_000                     # Optional: request timeout
@@ -157,19 +157,19 @@ For MCP servers requiring authentication, pass headers with your credentials:
 
 ```elixir
 # Bearer token authentication
-{:ok, conn} = Charon.connect(:http,
+{:ok, conn} = Hermolaos.connect(:http,
   url: "https://api.example.com/mcp",
   headers: [{"authorization", "Bearer your-jwt-token"}]
 )
 
 # API key authentication
-{:ok, conn} = Charon.connect(:http,
+{:ok, conn} = Hermolaos.connect(:http,
   url: "https://api.example.com/mcp",
   headers: [{"x-api-key", "your-api-key"}]
 )
 
 # Multiple headers
-{:ok, conn} = Charon.connect(:http,
+{:ok, conn} = Hermolaos.connect(:http,
   url: "https://api.example.com/mcp",
   headers: [
     {"authorization", "Bearer token"},
@@ -185,7 +185,7 @@ For high-throughput scenarios, use the built-in connection pool:
 
 ```elixir
 # Start a pool with multiple connections
-{:ok, pool} = Charon.Pool.start_link(
+{:ok, pool} = Hermolaos.Pool.start_link(
   name: MyApp.MCPPool,
   size: 4,
   connection_opts: [
@@ -196,13 +196,13 @@ For high-throughput scenarios, use the built-in connection pool:
 )
 
 # Use checkout/checkin pattern
-{:ok, conn} = Charon.Pool.checkout(MyApp.MCPPool)
-result = Charon.call_tool(conn, "my_tool", %{})
-Charon.Pool.checkin(MyApp.MCPPool, conn)
+{:ok, conn} = Hermolaos.Pool.checkout(MyApp.MCPPool)
+result = Hermolaos.call_tool(conn, "my_tool", %{})
+Hermolaos.Pool.checkin(MyApp.MCPPool, conn)
 
 # Or use transaction for automatic checkin
-result = Charon.Pool.transaction(MyApp.MCPPool, fn conn ->
-  Charon.call_tool(conn, "my_tool", %{})
+result = Hermolaos.Pool.transaction(MyApp.MCPPool, fn conn ->
+  Hermolaos.call_tool(conn, "my_tool", %{})
 end)
 ```
 
@@ -212,7 +212,7 @@ Handle server notifications with custom handlers:
 
 ```elixir
 defmodule MyApp.MCPHandler do
-  @behaviour Charon.Client.NotificationHandler
+  @behaviour Hermolaos.Client.NotificationHandler
 
   @impl true
   def handle_notification({:notification, "notifications/tools/list_changed", _}, state) do
@@ -224,7 +224,7 @@ defmodule MyApp.MCPHandler do
 end
 
 # Use custom handler
-{:ok, conn} = Charon.connect(:stdio,
+{:ok, conn} = Hermolaos.connect(:stdio,
   command: "server",
   notification_handler: {MyApp.MCPHandler, %{}}
 )
@@ -232,19 +232,19 @@ end
 
 ## Error Handling
 
-Errors are returned as `{:error, %Charon.Error{}}`:
+Errors are returned as `{:error, %Hermolaos.Error{}}`:
 
 ```elixir
-case Charon.call_tool(conn, "unknown_tool", %{}) do
+case Hermolaos.call_tool(conn, "unknown_tool", %{}) do
   {:ok, result} ->
     # Handle success
     result
 
-  {:error, %Charon.Error{code: -32601, message: message}} ->
+  {:error, %Hermolaos.Error{code: -32601, message: message}} ->
     # Method not found
     Logger.error("Tool not found: #{message}")
 
-  {:error, %Charon.Error{code: -32001}} ->
+  {:error, %Hermolaos.Error{code: -32001}} ->
     # Request timeout
     Logger.error("Request timed out")
 
@@ -256,33 +256,33 @@ end
 
 ## Example: Playwright Browser Automation
 
-Charon works with browser automation MCP servers like [Playwright MCP](https://github.com/microsoft/playwright-mcp):
+Hermolaos works with browser automation MCP servers like [Playwright MCP](https://github.com/microsoft/playwright-mcp):
 
 ```elixir
 # Connect to Playwright MCP server
-{:ok, conn} = Charon.connect(:stdio,
+{:ok, conn} = Hermolaos.connect(:stdio,
   command: "npx",
   args: ["@playwright/mcp@latest"]
 )
 
 # Navigate to a page
-Charon.call_tool(conn, "browser_navigate", %{"url" => "https://example.com"})
+Hermolaos.call_tool(conn, "browser_navigate", %{"url" => "https://example.com"})
 
 # Get page snapshot (accessibility tree with element refs)
-{:ok, snap} = Charon.call_tool(conn, "browser_snapshot", %{})
-IO.puts(Charon.get_text(snap))
+{:ok, snap} = Hermolaos.call_tool(conn, "browser_snapshot", %{})
+IO.puts(Hermolaos.get_text(snap))
 
 # Click an element (use ref from snapshot)
-Charon.call_tool(conn, "browser_click", %{"element" => "More information", "ref" => "e5"})
+Hermolaos.call_tool(conn, "browser_click", %{"element" => "More information", "ref" => "e5"})
 
 # Take a screenshot
-{:ok, result} = Charon.call_tool(conn, "browser_take_screenshot", %{})
-{:ok, image} = Charon.get_image(result)
+{:ok, result} = Hermolaos.call_tool(conn, "browser_take_screenshot", %{})
+{:ok, image} = Hermolaos.get_image(result)
 File.write!("screenshot.png", image)
 
 # Close and disconnect
-Charon.call_tool(conn, "browser_close", %{})
-Charon.disconnect(conn)
+Hermolaos.call_tool(conn, "browser_close", %{})
+Hermolaos.disconnect(conn)
 ```
 
 ## Architecture

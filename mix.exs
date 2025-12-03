@@ -1,12 +1,12 @@
-defmodule Charon.MixProject do
+defmodule Hermolaos.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
-  @source_url "https://github.com/niko/charon"
+  @version "0.3.0"
+  @source_url "https://github.com/nyo16/hermolaos"
 
   def project do
     [
-      app: :charon,
+      app: :hermolaos,
       version: @version,
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
@@ -15,7 +15,7 @@ defmodule Charon.MixProject do
       aliases: aliases(),
 
       # Hex.pm
-      name: "Charon",
+      name: "Hermolaos",
       description: "An Elixir client for the Model Context Protocol (MCP)",
       package: package(),
       docs: docs(),
@@ -51,7 +51,7 @@ defmodule Charon.MixProject do
 
   defp package do
     [
-      name: "charon",
+      name: "hermolaos",
       licenses: ["Apache-2.0"],
       links: %{
         "GitHub" => @source_url
@@ -63,7 +63,7 @@ defmodule Charon.MixProject do
   defp docs do
     [
       main: "readme",
-      name: "Charon",
+      name: "Hermolaos",
       source_ref: "v#{@version}",
       source_url: @source_url,
       extras: [
@@ -74,29 +74,29 @@ defmodule Charon.MixProject do
       ],
       groups_for_modules: [
         "Public API": [
-          Charon
+          Hermolaos
         ],
         "Protocol": [
-          Charon.Protocol.Capabilities,
-          Charon.Protocol.Errors,
-          Charon.Protocol.JsonRpc,
-          Charon.Protocol.Messages
+          Hermolaos.Protocol.Capabilities,
+          Hermolaos.Protocol.Errors,
+          Hermolaos.Protocol.JsonRpc,
+          Hermolaos.Protocol.Messages
         ],
         "Transport": [
-          Charon.Transport,
-          Charon.Transport.Behaviour,
-          Charon.Transport.Http,
-          Charon.Transport.MessageBuffer,
-          Charon.Transport.Stdio
+          Hermolaos.Transport,
+          Hermolaos.Transport.Behaviour,
+          Hermolaos.Transport.Http,
+          Hermolaos.Transport.MessageBuffer,
+          Hermolaos.Transport.Stdio
         ],
         "Client Internals": [
-          Charon.Client.Connection,
-          Charon.Client.NotificationHandler,
-          Charon.Client.RequestTracker
+          Hermolaos.Client.Connection,
+          Hermolaos.Client.NotificationHandler,
+          Hermolaos.Client.RequestTracker
         ],
         "Other": [
-          Charon.Error,
-          Charon.Pool
+          Hermolaos.Error,
+          Hermolaos.Pool
         ]
       ]
     ]
