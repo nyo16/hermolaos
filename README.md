@@ -1,5 +1,11 @@
 # Charon
 
+[![Hex.pm](https://img.shields.io/hexpm/v/charon.svg)](https://hex.pm/packages/charon)
+[![Docs](https://img.shields.io/badge/hex-docs-blue.svg)](https://hexdocs.pm/charon)
+[![License](https://img.shields.io/hexpm/l/charon.svg)](LICENSE)
+
+> **Elixir client for the Model Context Protocol (MCP)** - Connect your Elixir applications to AI tools and resources through the standardized MCP protocol.
+
 An Elixir client for the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), enabling communication with AI tools and resources through a standardized protocol.
 
 ## Features
@@ -356,7 +362,7 @@ docker-compose -f docker-compose.test.yml up --build
 
 ## License
 
-MIT License - see LICENSE file for details.
+Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
 ## References
 

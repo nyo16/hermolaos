@@ -1,28 +1,37 @@
 defmodule Charon.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/niko/charon"
+
   def project do
     [
       app: :charon,
-      version: "0.1.0",
-      elixir: "~> 1.19",
+      version: @version,
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
-      deps: deps()
+      deps: deps(),
+
+      # Hex.pm
+      name: "Charon",
+      description: "An Elixir client for the Model Context Protocol (MCP)",
+      package: package(),
+      docs: docs(),
+      source_url: @source_url,
+      homepage_url: @source_url
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       # HTTP client
@@ -36,6 +45,58 @@ defmodule Charon.MixProject do
       # Testing
       {:mox, "~> 1.1", only: :test},
       {:bypass, "~> 2.1", only: :test}
+    ]
+  end
+
+  defp package do
+    [
+      name: "charon",
+      licenses: ["Apache-2.0"],
+      links: %{
+        "GitHub" => @source_url
+      },
+      files: ~w(lib .formatter.exs mix.exs README.md LICENSE)
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      name: "Charon",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      extras: [
+        "README.md",
+        "docs/architecture.md",
+        "docs/design_decisions.md"
+      ],
+      groups_for_modules: [
+        "Public API": [
+          Charon
+        ],
+        "Protocol": [
+          Charon.Protocol.Capabilities,
+          Charon.Protocol.Errors,
+          Charon.Protocol.JsonRpc,
+          Charon.Protocol.Messages
+        ],
+        "Transport": [
+          Charon.Transport,
+          Charon.Transport.Behaviour,
+          Charon.Transport.Http,
+          Charon.Transport.MessageBuffer,
+          Charon.Transport.Stdio
+        ],
+        "Client Internals": [
+          Charon.Client.Connection,
+          Charon.Client.NotificationHandler,
+          Charon.Client.RequestTracker
+        ],
+        "Other": [
+          Charon.Error,
+          Charon.Pool
+        ]
+      ]
     ]
   end
 end
