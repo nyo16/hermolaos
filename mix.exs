@@ -12,6 +12,7 @@ defmodule Charon.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
+      aliases: aliases(),
 
       # Hex.pm
       name: "Charon",
@@ -55,7 +56,7 @@ defmodule Charon.MixProject do
       links: %{
         "GitHub" => @source_url
       },
-      files: ~w(lib .formatter.exs mix.exs README.md LICENSE)
+      files: ~w(lib images .formatter.exs mix.exs README.md LICENSE)
     ]
   end
 
@@ -98,5 +99,14 @@ defmodule Charon.MixProject do
         ]
       ]
     ]
+  end
+
+  defp aliases do
+    [docs: ["docs", &copy_images/1]]
+  end
+
+  defp copy_images(_) do
+    File.mkdir_p!("doc/images")
+    File.cp!("images/header.jpeg", "doc/images/header.jpeg")
   end
 end
