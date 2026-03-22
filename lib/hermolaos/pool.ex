@@ -295,8 +295,7 @@ defmodule Hermolaos.Pool do
 
     DynamicSupervisor.which_children(supervisor)
     |> Enum.map(fn {_, pid, _, _} -> pid end)
-    |> Enum.filter(&is_pid/1)
-    |> Enum.filter(&Process.alive?/1)
+    |> Enum.filter(fn pid -> is_pid(pid) and Process.alive?(pid) end)
   end
 
   defp get_strategy(pool) do
@@ -340,6 +339,7 @@ defmodule Hermolaos.Pool do
   end
 
   defp pool_name(pool) when is_atom(pool), do: pool
+
   defp pool_name(pool) when is_pid(pool) do
     case Process.info(pool, :registered_name) do
       {:registered_name, name} -> name

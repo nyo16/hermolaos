@@ -88,7 +88,7 @@ defmodule Hermolaos.Test.MockMCPServer do
     _capabilities = params["capabilities"]
 
     result = %{
-      "protocolVersion" => params["protocolVersion"] || "2025-03-26",
+      "protocolVersion" => params["protocolVersion"] || "2025-11-25",
       "capabilities" => @default_capabilities,
       "serverInfo" => @default_server_info
     }

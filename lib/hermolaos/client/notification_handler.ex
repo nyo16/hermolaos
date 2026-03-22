@@ -106,12 +106,17 @@ defmodule Hermolaos.Client.DefaultNotificationHandler do
     token = params["progressToken"]
     progress = params["progress"]
     total = params["total"]
+    message = params["message"]
 
-    if total do
-      Logger.debug("[MCP Progress] #{token}: #{progress}/#{total}")
-    else
-      Logger.debug("[MCP Progress] #{token}: #{progress}")
-    end
+    progress_str =
+      case {total, message} do
+        {nil, nil} -> "#{token}: #{progress}"
+        {total, nil} -> "#{token}: #{progress}/#{total}"
+        {nil, msg} -> "#{token}: #{progress} - #{msg}"
+        {total, msg} -> "#{token}: #{progress}/#{total} - #{msg}"
+      end
+
+    Logger.debug("[MCP Progress] #{progress_str}")
 
     {:ok, state}
   end
@@ -218,11 +223,13 @@ defmodule Hermolaos.Client.PubSubNotificationHandler do
 
   def handle_notification(event, %{registry: registry, key: key} = state) do
     message = event_to_message(event)
+
     Registry.dispatch(registry, key, fn entries ->
       for {pid, _value} <- entries do
         send(pid, message)
       end
     end)
+
     {:ok, state}
   end
 

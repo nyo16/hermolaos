@@ -216,6 +216,7 @@ defmodule Hermolaos.Transport.MessageBuffer do
   # Parse a single line into a JSON message
   @spec parse_line(binary()) :: {:ok, map()} | :skip | :error
   defp parse_line(<<>>), do: :skip
+
   defp parse_line(line) when is_binary(line) do
     trimmed = String.trim(line)
 
@@ -224,7 +225,8 @@ defmodule Hermolaos.Transport.MessageBuffer do
     else
       case Jason.decode(trimmed) do
         {:ok, map} when is_map(map) -> {:ok, map}
-        {:ok, _} -> :error  # Valid JSON but not an object
+        # Valid JSON but not an object
+        {:ok, _} -> :error
         {:error, _} -> :error
       end
     end

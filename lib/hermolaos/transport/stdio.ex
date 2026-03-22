@@ -177,7 +177,10 @@ defmodule Hermolaos.Transport.Stdio do
     owner = Keyword.fetch!(opts, :owner)
     command = Keyword.fetch!(opts, :command)
     args = Keyword.get(opts, :args, [])
-    env = Keyword.get(opts, :env, []) |> Enum.map(fn {k, v} -> {to_charlist(k), to_charlist(v)} end)
+
+    env =
+      Keyword.get(opts, :env, []) |> Enum.map(fn {k, v} -> {to_charlist(k), to_charlist(v)} end)
+
     cd = Keyword.get(opts, :cd)
 
     state = %{

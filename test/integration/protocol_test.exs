@@ -11,10 +11,11 @@ defmodule Hermolaos.Integration.ProtocolTest do
   describe "initialize handshake" do
     test "successful initialization" do
       # Create initialize request
-      request = Messages.initialize(
-        %{name: "TestClient", version: "1.0.0"},
-        %{}
-      )
+      request =
+        Messages.initialize(
+          %{name: "TestClient", version: "1.0.0"},
+          %{}
+        )
 
       request_json = JsonRpc.encode_request(1, "initialize", request)
       {response_json, state} = MockMCPServer.process(request_json)
@@ -237,10 +238,16 @@ defmodule Hermolaos.Integration.ProtocolTest do
       state = MockMCPServer.default_state()
 
       # First initialize
-      request1 = JsonRpc.encode_request(1, "initialize", Messages.initialize(
-        %{name: "Test", version: "1.0.0"},
-        %{}
-      ))
+      request1 =
+        JsonRpc.encode_request(
+          1,
+          "initialize",
+          Messages.initialize(
+            %{name: "Test", version: "1.0.0"},
+            %{}
+          )
+        )
+
       {_response1, state} = MockMCPServer.process(request1, state)
       assert state.initialized == true
 

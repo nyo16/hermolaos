@@ -87,10 +87,12 @@ defmodule Hermolaos do
   # Response Normalization
   # ============================================================================
 
-  # Converts string keys to atoms for more ergonomic pattern matching
+  # Converts string keys to atoms for more ergonomic pattern matching.
+  # Uses String.to_existing_atom/1 to avoid atom table exhaustion from
+  # untrusted server data — unknown keys are kept as strings.
   defp atomize_keys(map) when is_map(map) do
     Map.new(map, fn
-      {k, v} when is_binary(k) -> {String.to_atom(k), atomize_keys(v)}
+      {k, v} when is_binary(k) -> {safe_to_atom(k), atomize_keys(v)}
       {k, v} -> {k, atomize_keys(v)}
     end)
   end
@@ -100,6 +102,12 @@ defmodule Hermolaos do
   end
 
   defp atomize_keys(other), do: other
+
+  defp safe_to_atom(string) do
+    String.to_existing_atom(string)
+  rescue
+    ArgumentError -> string
+  end
 
   defp normalize_response({:ok, result}), do: {:ok, atomize_keys(result)}
   defp normalize_response(error), do: error
@@ -229,6 +237,24 @@ defmodule Hermolaos do
   @spec server_capabilities(client()) :: {:ok, map()} | {:error, :not_initialized}
   def server_capabilities(client) do
     Connection.server_capabilities(client)
+  end
+
+  @doc """
+  Gets server instructions from the initialization response.
+
+  Instructions describe how to use the server and its capabilities.
+
+  ## Examples
+
+      case Hermolaos.instructions(client) do
+        {:ok, instructions} -> IO.puts(instructions)
+        {:error, :no_instructions} -> IO.puts("No instructions provided")
+      end
+  """
+  @spec instructions(client()) ::
+          {:ok, String.t()} | {:error, :not_initialized | :no_instructions}
+  def instructions(client) do
+    Connection.instructions(client)
   end
 
   # ============================================================================
@@ -527,7 +553,8 @@ defmodule Hermolaos do
   """
   @spec complete(client(), map(), map(), keyword()) :: {:ok, map()} | {:error, term()}
   def complete(client, ref, argument, opts \\ []) do
-    msg = Messages.completion_complete(ref, argument)
+    context = Keyword.get(opts, :context)
+    msg = Messages.completion_complete(ref, argument, context)
 
     client
     |> Connection.request(msg["method"], msg["params"], opts)
@@ -614,6 +641,83 @@ defmodule Hermolaos do
   end
 
   def get_images(_), do: []
+
+  @doc """
+  Extracts audio data from a tool call result.
+
+  Returns the base64-decoded binary audio data.
+
+  ## Examples
+
+      {:ok, result} = Hermolaos.call_tool(client, "text_to_speech", %{"text" => "hello"})
+      case Hermolaos.get_audio(result) do
+        {:ok, audio_data} -> File.write!("speech.mp3", audio_data)
+        :error -> IO.puts("No audio in response")
+      end
+  """
+  @spec get_audio(map()) :: {:ok, binary()} | :error
+  def get_audio(%{content: content}) when is_list(content) do
+    case Enum.find(content, &(&1.type == "audio")) do
+      %{data: base64_data} ->
+        case Base.decode64(base64_data) do
+          {:ok, data} -> {:ok, data}
+          :error -> :error
+        end
+
+      nil ->
+        :error
+    end
+  end
+
+  def get_audio(_), do: :error
+
+  @doc """
+  Extracts all audio clips from a tool call result.
+
+  Returns a list of base64-decoded binary audio data.
+  """
+  @spec get_audios(map()) :: [binary()]
+  def get_audios(%{content: content}) when is_list(content) do
+    content
+    |> Enum.filter(&(&1.type == "audio"))
+    |> Enum.map(& &1.data)
+    |> Enum.map(&Base.decode64!/1)
+  end
+
+  def get_audios(_), do: []
+
+  @doc """
+  Extracts resource links from a tool call result.
+
+  Returns a list of resource link maps with `:uri` and optional `:name`, `:mimeType`.
+  """
+  @spec get_resource_links(map()) :: [map()]
+  def get_resource_links(%{content: content}) when is_list(content) do
+    Enum.filter(content, &(&1.type == "resource_link"))
+  end
+
+  def get_resource_links(_), do: []
+
+  @doc """
+  Extracts structured content from a tool call result.
+
+  Returns the `structuredContent` map if present, which contains typed data
+  matching the tool's `outputSchema`.
+
+  ## Examples
+
+      {:ok, result} = Hermolaos.call_tool(client, "structured_tool", %{})
+      case Hermolaos.get_structured_content(result) do
+        {:ok, data} -> IO.inspect(data)
+        :error -> IO.puts("No structured content")
+      end
+  """
+  @spec get_structured_content(map()) :: {:ok, map()} | :error
+  def get_structured_content(%{structuredContent: content}) when is_map(content) do
+    {:ok, content}
+  end
+
+  def get_structured_content(_), do: :error
 
   # ============================================================================
   # Notifications

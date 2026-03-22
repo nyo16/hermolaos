@@ -5,7 +5,7 @@ defmodule Hermolaos.Protocol.MessagesTest do
 
   describe "default_protocol_version/0" do
     test "returns the default protocol version" do
-      assert Messages.default_protocol_version() == "2025-03-26"
+      assert Messages.default_protocol_version() == "2025-11-25"
     end
   end
 
@@ -17,7 +17,7 @@ defmodule Hermolaos.Protocol.MessagesTest do
       msg = Messages.initialize(capabilities, client_info)
 
       assert msg["method"] == "initialize"
-      assert msg["params"]["protocolVersion"] == "2025-03-26"
+      assert msg["params"]["protocolVersion"] == "2025-11-25"
       assert msg["params"]["clientInfo"][:name] == "TestClient"
       assert msg["params"]["clientInfo"][:version] == "1.0.0"
       assert msg["params"]["capabilities"]["roots"] == %{}
@@ -212,8 +212,8 @@ defmodule Hermolaos.Protocol.MessagesTest do
   end
 
   describe "progress_notification/3" do
-    test "creates progress notification" do
-      msg = Messages.progress_notification("token123", 50, 100)
+    test "creates progress notification with total" do
+      msg = Messages.progress_notification("token123", 50, total: 100)
 
       assert msg["method"] == "notifications/progress"
       assert msg["params"]["progressToken"] == "token123"
@@ -226,6 +226,13 @@ defmodule Hermolaos.Protocol.MessagesTest do
 
       assert msg["params"]["progress"] == 50
       refute Map.has_key?(msg["params"], "total")
+    end
+
+    test "creates progress notification with message" do
+      msg = Messages.progress_notification("token123", 50, total: 100, message: "Processing...")
+
+      assert msg["params"]["message"] == "Processing..."
+      assert msg["params"]["total"] == 100
     end
   end
 

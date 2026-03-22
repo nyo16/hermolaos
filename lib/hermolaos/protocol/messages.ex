@@ -37,7 +37,7 @@ defmodule Hermolaos.Protocol.Messages do
   - `completion_complete/2` - Request completions
   """
 
-  @default_protocol_version "2025-03-26"
+  @default_protocol_version "2025-11-25"
 
   @doc """
   Returns the default MCP protocol version.
@@ -342,6 +342,7 @@ defmodule Hermolaos.Protocol.Messages do
 
   - `ref` - Reference object (prompt or resource)
   - `argument` - Argument to complete
+  - `context` - Optional context map with `"arguments"` for multi-argument completion
 
   ## Examples
 
@@ -349,15 +350,27 @@ defmodule Hermolaos.Protocol.Messages do
         %{"type" => "ref/prompt", "name" => "code_review"},
         %{"name" => "language", "value" => "eli"}
       )
+
+      # With context arguments
+      msg = Hermolaos.Protocol.Messages.completion_complete(
+        %{"type" => "ref/prompt", "name" => "code_review"},
+        %{"name" => "language", "value" => "eli"},
+        %{"arguments" => %{"repo" => "myapp"}}
+      )
   """
-  @spec completion_complete(map(), map()) :: map()
-  def completion_complete(ref, argument) when is_map(ref) and is_map(argument) do
+  @spec completion_complete(map(), map(), map() | nil) :: map()
+  def completion_complete(ref, argument, context \\ nil)
+      when is_map(ref) and is_map(argument) do
+    params = %{
+      "ref" => ref,
+      "argument" => argument
+    }
+
+    params = if context, do: Map.put(params, "context", context), else: params
+
     %{
       "method" => "completion/complete",
-      "params" => %{
-        "ref" => ref,
-        "argument" => argument
-      }
+      "params" => params
     }
   end
 
@@ -397,20 +410,27 @@ defmodule Hermolaos.Protocol.Messages do
 
   - `progress_token` - Token identifying the operation
   - `progress` - Current progress value
-  - `total` - Optional total value
+  - `opts` - Optional keyword list:
+    - `:total` - Total progress value
+    - `:message` - Human-readable progress message
 
   ## Examples
 
-      msg = Hermolaos.Protocol.Messages.progress_notification("op123", 50, 100)
+      msg = Hermolaos.Protocol.Messages.progress_notification("op123", 50, total: 100)
+      msg = Hermolaos.Protocol.Messages.progress_notification("op123", 50, total: 100, message: "Processing files...")
   """
-  @spec progress_notification(String.t() | integer(), number(), number() | nil) :: map()
-  def progress_notification(progress_token, progress, total \\ nil) do
+  @spec progress_notification(String.t() | integer(), number(), keyword()) :: map()
+  def progress_notification(progress_token, progress, opts \\ []) do
+    total = Keyword.get(opts, :total)
+    message = Keyword.get(opts, :message)
+
     params = %{
       "progressToken" => progress_token,
       "progress" => progress
     }
 
     params = if total, do: Map.put(params, "total", total), else: params
+    params = if message, do: Map.put(params, "message", message), else: params
 
     %{"method" => "notifications/progress", "params" => params}
   end

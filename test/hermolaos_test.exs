@@ -74,18 +74,24 @@ defmodule HermolaosTest do
     end
 
     test "concatenates multiple text items" do
-      result = %{content: [
-        %{type: "text", text: "Line 1"},
-        %{type: "text", text: "Line 2"}
-      ]}
+      result = %{
+        content: [
+          %{type: "text", text: "Line 1"},
+          %{type: "text", text: "Line 2"}
+        ]
+      }
+
       assert Hermolaos.get_text(result) == "Line 1\nLine 2"
     end
 
     test "ignores non-text content" do
-      result = %{content: [
-        %{type: "text", text: "Hello"},
-        %{type: "image", data: "base64data"}
-      ]}
+      result = %{
+        content: [
+          %{type: "text", text: "Hello"},
+          %{type: "image", data: "base64data"}
+        ]
+      }
+
       assert Hermolaos.get_text(result) == "Hello"
     end
 
@@ -111,19 +117,27 @@ defmodule HermolaosTest do
     test "returns first image when multiple present" do
       data1 = Base.encode64("First")
       data2 = Base.encode64("Second")
-      result = %{content: [
-        %{type: "image", data: data1},
-        %{type: "image", data: data2}
-      ]}
+
+      result = %{
+        content: [
+          %{type: "image", data: data1},
+          %{type: "image", data: data2}
+        ]
+      }
+
       assert Hermolaos.get_image(result) == {:ok, "First"}
     end
 
     test "skips non-image content" do
       data = Base.encode64("ImageData")
-      result = %{content: [
-        %{type: "text", text: "Description"},
-        %{type: "image", data: data}
-      ]}
+
+      result = %{
+        content: [
+          %{type: "text", text: "Description"},
+          %{type: "image", data: data}
+        ]
+      }
+
       assert Hermolaos.get_image(result) == {:ok, "ImageData"}
     end
 
@@ -142,11 +156,15 @@ defmodule HermolaosTest do
     test "extracts all images" do
       data1 = Base.encode64("First")
       data2 = Base.encode64("Second")
-      result = %{content: [
-        %{type: "image", data: data1},
-        %{type: "text", text: "Middle"},
-        %{type: "image", data: data2}
-      ]}
+
+      result = %{
+        content: [
+          %{type: "image", data: data1},
+          %{type: "text", text: "Middle"},
+          %{type: "image", data: data2}
+        ]
+      }
+
       assert Hermolaos.get_images(result) == ["First", "Second"]
     end
 
