@@ -159,7 +159,7 @@ defmodule Hermolaos.Client.RequestTracker do
           :ok
       end
   """
-  @spec fail(t(), id(), term()) :: {:ok, from(), method()} | {:error, :not_found}
+  @spec fail(t(), id(), term()) :: {:ok, from() | nil, method()} | {:error, :not_found}
   def fail(tracker, id, _error) do
     GenServer.call(tracker, {:fail, id})
   end
