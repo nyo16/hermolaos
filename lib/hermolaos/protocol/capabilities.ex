@@ -39,27 +39,9 @@ defmodule Hermolaos.Protocol.Capabilities do
       end
   """
 
-  @type client_capabilities :: %{
-          optional(:roots) => %{optional(:listChanged) => boolean()},
-          optional(:sampling) => %{},
-          optional(:elicitation) => %{
-            optional(:form) => boolean(),
-            optional(:url) => boolean()
-          },
-          optional(:tasks) => %{}
-        }
+  @type client_capabilities :: %{optional(String.t()) => map()}
 
-  @type server_capabilities :: %{
-          optional(:tools) => %{optional(:listChanged) => boolean()},
-          optional(:resources) => %{
-            optional(:subscribe) => boolean(),
-            optional(:listChanged) => boolean()
-          },
-          optional(:prompts) => %{optional(:listChanged) => boolean()},
-          optional(:logging) => %{},
-          optional(:completions) => %{},
-          optional(:tasks) => %{}
-        }
+  @type server_capabilities :: %{optional(String.t()) => map() | boolean()}
 
   @type capability ::
           :roots

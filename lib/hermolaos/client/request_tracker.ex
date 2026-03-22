@@ -120,7 +120,7 @@ defmodule Hermolaos.Client.RequestTracker do
       :ok = Hermolaos.Client.RequestTracker.track(tracker, 1, "tools/list", from)
       :ok = Hermolaos.Client.RequestTracker.track(tracker, 2, "tools/call", from, 60_000)
   """
-  @spec track(t(), id(), method(), from(), timeout() | nil) :: :ok
+  @spec track(t(), id(), method(), from() | nil, timeout() | nil) :: :ok
   def track(tracker, id, method, from, timeout \\ nil) do
     GenServer.call(tracker, {:track, id, method, from, timeout})
   end
@@ -141,7 +141,7 @@ defmodule Hermolaos.Client.RequestTracker do
           :ok
       end
   """
-  @spec complete(t(), id()) :: {:ok, from(), method()} | {:error, :not_found}
+  @spec complete(t(), id()) :: {:ok, from() | nil, method()} | {:error, :not_found}
   def complete(tracker, id) do
     GenServer.call(tracker, {:complete, id})
   end
