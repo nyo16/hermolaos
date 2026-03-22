@@ -189,4 +189,78 @@ defmodule Hermolaos.Protocol.CapabilitiesTest do
       assert :ok = Capabilities.require(caps, [])
     end
   end
+
+  describe "instructions_from_response/1" do
+    test "extracts instructions from response" do
+      response = %{"instructions" => "Use the tools"}
+
+      assert {:ok, "Use the tools"} = Capabilities.instructions_from_response(response)
+    end
+
+    test "returns error when no instructions" do
+      response = %{"capabilities" => %{}}
+
+      assert {:error, :no_instructions} = Capabilities.instructions_from_response(response)
+    end
+
+    test "returns error for nil instructions" do
+      response = %{"instructions" => nil}
+
+      assert {:error, :no_instructions} = Capabilities.instructions_from_response(response)
+    end
+  end
+
+  describe "elicitation and tasks capabilities" do
+    test "supports? returns true for elicitation" do
+      caps = %{"elicitation" => %{}}
+
+      assert Capabilities.supports?(caps, :elicitation)
+    end
+
+    test "supports? returns true for tasks" do
+      caps = %{"tasks" => %{}}
+
+      assert Capabilities.supports?(caps, :tasks)
+    end
+
+    test "supports? returns false for missing elicitation" do
+      caps = %{}
+
+      refute Capabilities.supports?(caps, :elicitation)
+    end
+  end
+
+  describe "build_client_capabilities/1 with new options" do
+    test "enables elicitation when requested" do
+      caps = Capabilities.build_client_capabilities(elicitation: true)
+
+      assert Map.has_key?(caps, "elicitation")
+      assert caps["elicitation"]["form"] == true
+      assert caps["elicitation"]["url"] == true
+    end
+
+    test "enables tasks when requested" do
+      caps = Capabilities.build_client_capabilities(tasks: true)
+
+      assert Map.has_key?(caps, "tasks")
+    end
+
+    test "does not include elicitation by default" do
+      caps = Capabilities.build_client_capabilities()
+
+      refute Map.has_key?(caps, "elicitation")
+    end
+
+    test "does not include tasks by default" do
+      caps = Capabilities.build_client_capabilities()
+
+      refute Map.has_key?(caps, "tasks")
+    end
+  end
+
+  describe "latest_version/0 returns 2025-11-25" do
+    test "returns 2025-11-25 as latest" do
+      assert Capabilities.latest_version() == "2025-11-25"
+    end
+  end
 end

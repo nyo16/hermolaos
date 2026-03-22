@@ -529,7 +529,10 @@ defmodule Hermolaos.Transport.Http do
     name_lower = String.downcase(name)
 
     Enum.find_value(headers, fn
-      {k, v} when is_binary(k) ->
+      {k, [v | _]} when is_binary(k) and is_binary(v) ->
+        if String.downcase(k) == name_lower, do: v
+
+      {k, v} when is_binary(k) and is_binary(v) ->
         if String.downcase(k) == name_lower, do: v
 
       {k, v} when is_list(k) ->

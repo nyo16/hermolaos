@@ -269,4 +269,45 @@ defmodule Hermolaos.Protocol.MessagesTest do
       assert error["message"] =~ "Sampling not supported"
     end
   end
+
+  describe "completion_complete/3 with context" do
+    test "creates completion message with context" do
+      msg =
+        Messages.completion_complete(
+          %{"type" => "ref/prompt", "name" => "test"},
+          %{"name" => "arg", "value" => "val"},
+          %{"arguments" => %{"other" => "value"}}
+        )
+
+      assert msg["params"]["context"] == %{"arguments" => %{"other" => "value"}}
+    end
+
+    test "creates completion message without context" do
+      msg =
+        Messages.completion_complete(
+          %{"type" => "ref/prompt", "name" => "test"},
+          %{"name" => "arg", "value" => "val"}
+        )
+
+      refute Map.has_key?(msg["params"], "context")
+    end
+  end
+
+  describe "progress_notification/3 with message" do
+    test "creates progress notification with message only" do
+      msg = Messages.progress_notification("token", 50, message: "Working...")
+
+      assert msg["params"]["message"] == "Working..."
+      refute Map.has_key?(msg["params"], "total")
+    end
+  end
+
+  describe "initialized_notification/0 structure" do
+    test "creates initialized notification with correct structure" do
+      msg = Messages.initialized_notification()
+
+      assert msg["method"] == "notifications/initialized"
+      refute Map.has_key?(msg, "params")
+    end
+  end
 end

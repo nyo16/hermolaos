@@ -90,7 +90,8 @@ defmodule Hermolaos.Test.MockMCPServer do
     result = %{
       "protocolVersion" => params["protocolVersion"] || "2025-11-25",
       "capabilities" => @default_capabilities,
-      "serverInfo" => @default_server_info
+      "serverInfo" => @default_server_info,
+      "instructions" => "Use the echo tool to test messages."
     }
 
     {{:ok, result}, %{state | initialized: true}}
@@ -181,6 +182,49 @@ defmodule Hermolaos.Test.MockMCPServer do
   defp handle_request("logging/setLevel", params, state) do
     _level = params["level"]
     {{:ok, %{}}, state}
+  end
+
+  defp handle_request("completion/complete", params, state) do
+    ref = params["ref"]
+    argument = params["argument"]
+
+    values =
+      case {ref["type"], argument["name"]} do
+        {"ref/prompt", "name"} -> ["greeting", "summarize"]
+        _ -> []
+      end
+
+    result = %{
+      "completion" => %{
+        "values" => values,
+        "hasMore" => false,
+        "total" => length(values)
+      }
+    }
+
+    {{:ok, result}, state}
+  end
+
+  defp handle_request("resources/subscribe", _params, state) do
+    {{:ok, %{}}, state}
+  end
+
+  defp handle_request("resources/unsubscribe", _params, state) do
+    {{:ok, %{}}, state}
+  end
+
+  defp handle_request("resources/templates/list", _params, state) do
+    result = %{
+      "resourceTemplates" => [
+        %{
+          "uriTemplate" => "file:///test/{filename}",
+          "name" => "Test File Template",
+          "description" => "Access test files by name"
+        }
+      ]
+    }
+
+    {{:ok, result}, state}
   end
 
   defp handle_request(method, _params, state) do

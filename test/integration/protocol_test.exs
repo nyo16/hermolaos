@@ -260,4 +260,204 @@ defmodule Hermolaos.Integration.ProtocolTest do
       assert length(response["result"]["tools"]) == 2
     end
   end
+
+  # ── 2025-11-25 spec features ───────────────────────────────────────────
+
+  describe "version negotiation" do
+    test "server returns matching protocol version" do
+      request =
+        Messages.initialize(
+          %{name: "TestClient", version: "1.0.0"},
+          %{}
+        )
+
+      request_json =
+        JsonRpc.encode_request(1, "initialize", Map.put(request, "protocolVersion", "2025-11-25"))
+
+      {response_json, _state} = MockMCPServer.process(request_json)
+
+      {:ok, {:response, response}} = JsonRpc.decode(response_json)
+
+      assert response["result"]["protocolVersion"] == "2025-11-25"
+    end
+
+    test "server returns its version" do
+      request =
+        Messages.initialize(
+          %{name: "TestClient", version: "1.0.0"},
+          %{}
+        )
+
+      request_json =
+        JsonRpc.encode_request(1, "initialize", Map.put(request, "protocolVersion", "2024-11-05"))
+
+      {response_json, _state} = MockMCPServer.process(request_json)
+
+      {:ok, {:response, response}} = JsonRpc.decode(response_json)
+
+      assert is_binary(response["result"]["protocolVersion"])
+    end
+  end
+
+  describe "instructions" do
+    test "initialize response contains instructions" do
+      request =
+        Messages.initialize(
+          %{name: "TestClient", version: "1.0.0"},
+          %{}
+        )
+
+      request_json = JsonRpc.encode_request(1, "initialize", request)
+      {response_json, _state} = MockMCPServer.process(request_json)
+
+      {:ok, {:response, response}} = JsonRpc.decode(response_json)
+
+      assert Map.has_key?(response["result"], "instructions")
+      assert is_binary(response["result"]["instructions"])
+    end
+  end
+
+  describe "completion" do
+    test "completion returns suggestions" do
+      params = %{
+        "ref" => %{"type" => "ref/prompt", "name" => "greeting"},
+        "argument" => %{"name" => "name", "value" => "gre"}
+      }
+
+      request_json = JsonRpc.encode_request(1, "completion/complete", params)
+      {response_json, _state} = MockMCPServer.process(request_json)
+
+      {:ok, {:response, response}} = JsonRpc.decode(response_json)
+
+      completion = response["result"]["completion"]
+      assert is_list(completion["values"])
+      assert length(completion["values"]) > 0
+      assert completion["hasMore"] == false
+      assert is_integer(completion["total"])
+    end
+
+    test "completion with context" do
+      params = %{
+        "ref" => %{"type" => "ref/prompt", "name" => "greeting"},
+        "argument" => %{"name" => "name", "value" => "gre"},
+        "context" => %{"arguments" => %{"other" => "value"}}
+      }
+
+      request_json = JsonRpc.encode_request(1, "completion/complete", params)
+      {response_json, _state} = MockMCPServer.process(request_json)
+
+      {:ok, {:response, response}} = JsonRpc.decode(response_json)
+
+      assert response["result"]["completion"]
+      assert is_list(response["result"]["completion"]["values"])
+    end
+  end
+
+  describe "resource templates" do
+    test "list resource templates returns templates" do
+      request_json = JsonRpc.encode_request(1, "resources/templates/list", %{})
+      {response_json, _state} = MockMCPServer.process(request_json)
+
+      {:ok, {:response, response}} = JsonRpc.decode(response_json)
+
+      templates = response["result"]["resourceTemplates"]
+      assert is_list(templates)
+      assert length(templates) > 0
+
+      [template | _] = templates
+      assert Map.has_key?(template, "uriTemplate")
+      assert Map.has_key?(template, "name")
+    end
+  end
+
+  describe "resource subscriptions" do
+    test "subscribe to resource succeeds" do
+      params = %{"uri" => "file:///test/document.txt"}
+      request_json = JsonRpc.encode_request(1, "resources/subscribe", params)
+      {response_json, _state} = MockMCPServer.process(request_json)
+
+      {:ok, {:response, response}} = JsonRpc.decode(response_json)
+
+      assert response["id"] == 1
+      assert response["result"] == %{}
+    end
+
+    test "unsubscribe from resource succeeds" do
+      params = %{"uri" => "file:///test/document.txt"}
+      request_json = JsonRpc.encode_request(1, "resources/unsubscribe", params)
+      {response_json, _state} = MockMCPServer.process(request_json)
+
+      {:ok, {:response, response}} = JsonRpc.decode(response_json)
+
+      assert response["id"] == 1
+      assert response["result"] == %{}
+    end
+  end
+
+  describe "cancellation" do
+    test "cancelled notification does not produce response" do
+      notification_json =
+        JsonRpc.encode_notification("notifications/cancelled", %{
+          "requestId" => 42,
+          "reason" => "user requested"
+        })
+
+      {response, _state} = MockMCPServer.process(notification_json)
+
+      assert response == nil
+    end
+  end
+
+  describe "full lifecycle" do
+    test "complete initialize-use-disconnect flow" do
+      state = MockMCPServer.default_state()
+
+      # Step 1: Initialize
+      init_request =
+        JsonRpc.encode_request(
+          1,
+          "initialize",
+          Messages.initialize(
+            %{name: "LifecycleClient", version: "1.0.0"},
+            %{}
+          )
+        )
+
+      {init_response_json, state} = MockMCPServer.process(init_request, state)
+      {:ok, {:response, init_response}} = JsonRpc.decode(init_response_json)
+
+      assert init_response["result"]["protocolVersion"]
+      assert init_response["result"]["serverInfo"]["name"] == "MockMCPServer"
+      assert state.initialized == true
+
+      # Step 2: Send initialized notification
+      initialized_json = JsonRpc.encode_notification("notifications/initialized", %{})
+      {nil_response, state} = MockMCPServer.process(initialized_json, state)
+      assert nil_response == nil
+
+      # Step 3: List tools
+      list_tools_json = JsonRpc.encode_request(2, "tools/list", %{})
+      {tools_response_json, state} = MockMCPServer.process(list_tools_json, state)
+      {:ok, {:response, tools_response}} = JsonRpc.decode(tools_response_json)
+
+      assert length(tools_response["result"]["tools"]) == 2
+
+      # Step 4: Call a tool
+      %{"params" => call_params} = Messages.tools_call("echo", %{"message" => "lifecycle test"})
+      call_json = JsonRpc.encode_request(3, "tools/call", call_params)
+      {call_response_json, state} = MockMCPServer.process(call_json, state)
+      {:ok, {:response, call_response}} = JsonRpc.decode(call_response_json)
+
+      [content] = call_response["result"]["content"]
+      assert content["text"] == "Echo: lifecycle test"
+
+      # Step 5: Ping to confirm server is still responsive
+      ping_json = JsonRpc.encode_request(4, "ping", %{})
+      {ping_response_json, _state} = MockMCPServer.process(ping_json, state)
+      {:ok, {:response, ping_response}} = JsonRpc.decode(ping_response_json)
+
+      assert ping_response["id"] == 4
+      assert ping_response["result"] == %{}
+    end
+  end
 end
