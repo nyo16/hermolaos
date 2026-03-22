@@ -126,6 +126,8 @@ jobs:
   dialyzer:
     name: Dialyzer
     runs-on: ubuntu-latest
+    env:
+      MIX_ENV: dev
     steps:
       - uses: actions/checkout@v6
 
@@ -140,9 +142,9 @@ jobs:
           path: |
             deps
             _build
-          key: ${{ runner.os }}-mix-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-mix-dev-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-mix-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-
+            ${{ runner.os }}-mix-dev-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-
 
       - name: Cache PLTs
         uses: actions/cache@v5
@@ -152,6 +154,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-plt-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-
 
+      - run: mkdir -p priv/plts
       - run: mix deps.get
       - run: mix deps.compile
       - run: mix compile
