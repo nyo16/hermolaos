@@ -97,9 +97,10 @@ defmodule Hermolaos.Integration.PlaywrightTest do
   describe "browser navigation" do
     test "navigates to a URL and gets snapshot", %{conn: conn} do
       # Navigate to example.com
-      {:ok, nav_result} = Hermolaos.call_tool(conn, "browser_navigate", %{
-        "url" => "https://example.com"
-      })
+      {:ok, nav_result} =
+        Hermolaos.call_tool(conn, "browser_navigate", %{
+          "url" => "https://example.com"
+        })
 
       assert Hermolaos.get_text(nav_result) != nil
 
@@ -113,9 +114,10 @@ defmodule Hermolaos.Integration.PlaywrightTest do
 
     test "takes a screenshot", %{conn: conn} do
       # Navigate first
-      {:ok, _} = Hermolaos.call_tool(conn, "browser_navigate", %{
-        "url" => "https://example.com"
-      })
+      {:ok, _} =
+        Hermolaos.call_tool(conn, "browser_navigate", %{
+          "url" => "https://example.com"
+        })
 
       # Take screenshot
       {:ok, screenshot_result} = Hermolaos.call_tool(conn, "browser_take_screenshot", %{})
@@ -133,9 +135,10 @@ defmodule Hermolaos.Integration.PlaywrightTest do
   describe "browser interactions" do
     test "clicks a link and navigates", %{conn: conn} do
       # Navigate to example.com
-      {:ok, _} = Hermolaos.call_tool(conn, "browser_navigate", %{
-        "url" => "https://example.com"
-      })
+      {:ok, _} =
+        Hermolaos.call_tool(conn, "browser_navigate", %{
+          "url" => "https://example.com"
+        })
 
       # Get snapshot to find a link (could be "More information" or "Learn more")
       {:ok, snap_result} = Hermolaos.call_tool(conn, "browser_snapshot", %{})
@@ -151,10 +154,11 @@ defmodule Hermolaos.Integration.PlaywrightTest do
 
       if ref do
         # Click the link using element and ref
-        {:ok, _click_result} = Hermolaos.call_tool(conn, "browser_click", %{
-          "element" => link_text,
-          "ref" => ref
-        })
+        {:ok, _click_result} =
+          Hermolaos.call_tool(conn, "browser_click", %{
+            "element" => link_text,
+            "ref" => ref
+          })
 
         # Give page time to load
         Process.sleep(2000)
@@ -173,9 +177,10 @@ defmodule Hermolaos.Integration.PlaywrightTest do
 
     test "types text into input fields", %{conn: conn} do
       # Navigate to a page with a form (using DuckDuckGo as example)
-      {:ok, _} = Hermolaos.call_tool(conn, "browser_navigate", %{
-        "url" => "https://duckduckgo.com"
-      })
+      {:ok, _} =
+        Hermolaos.call_tool(conn, "browser_navigate", %{
+          "url" => "https://duckduckgo.com"
+        })
 
       # Get snapshot to find search input
       {:ok, snap_result} = Hermolaos.call_tool(conn, "browser_snapshot", %{})
@@ -191,11 +196,12 @@ defmodule Hermolaos.Integration.PlaywrightTest do
 
       if ref do
         # Type into the search box
-        {:ok, _} = Hermolaos.call_tool(conn, "browser_type", %{
-          "element" => "Search",
-          "ref" => ref,
-          "text" => "Elixir programming"
-        })
+        {:ok, _} =
+          Hermolaos.call_tool(conn, "browser_type", %{
+            "element" => "Search",
+            "ref" => ref,
+            "text" => "Elixir programming"
+          })
 
         # Verify text was typed by taking new snapshot
         {:ok, after_snap} = Hermolaos.call_tool(conn, "browser_snapshot", %{})
@@ -213,9 +219,10 @@ defmodule Hermolaos.Integration.PlaywrightTest do
   describe "multiple screenshots" do
     test "get_images returns all screenshots", %{conn: conn} do
       # Navigate
-      {:ok, _} = Hermolaos.call_tool(conn, "browser_navigate", %{
-        "url" => "https://example.com"
-      })
+      {:ok, _} =
+        Hermolaos.call_tool(conn, "browser_navigate", %{
+          "url" => "https://example.com"
+        })
 
       # Take screenshot
       {:ok, result} = Hermolaos.call_tool(conn, "browser_take_screenshot", %{})
@@ -246,9 +253,10 @@ defmodule Hermolaos.Integration.PlaywrightTest do
     end
 
     test "handles navigation to invalid URL", %{conn: conn} do
-      result = Hermolaos.call_tool(conn, "browser_navigate", %{
-        "url" => "not-a-valid-url"
-      })
+      result =
+        Hermolaos.call_tool(conn, "browser_navigate", %{
+          "url" => "not-a-valid-url"
+        })
 
       # Should either return error or handle gracefully
       case result do
@@ -261,18 +269,20 @@ defmodule Hermolaos.Integration.PlaywrightTest do
   describe "session management" do
     test "browser state persists across calls", %{conn: conn} do
       # Navigate to first page
-      {:ok, _} = Hermolaos.call_tool(conn, "browser_navigate", %{
-        "url" => "https://example.com"
-      })
+      {:ok, _} =
+        Hermolaos.call_tool(conn, "browser_navigate", %{
+          "url" => "https://example.com"
+        })
 
       {:ok, snap1} = Hermolaos.call_tool(conn, "browser_snapshot", %{})
       text1 = Hermolaos.get_text(snap1)
       assert text1 =~ "Example"
 
       # Navigate to second page
-      {:ok, _} = Hermolaos.call_tool(conn, "browser_navigate", %{
-        "url" => "https://httpbin.org/html"
-      })
+      {:ok, _} =
+        Hermolaos.call_tool(conn, "browser_navigate", %{
+          "url" => "https://httpbin.org/html"
+        })
 
       {:ok, snap2} = Hermolaos.call_tool(conn, "browser_snapshot", %{})
       text2 = Hermolaos.get_text(snap2)

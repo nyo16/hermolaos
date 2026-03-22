@@ -49,6 +49,9 @@ defmodule Hermolaos.Protocol.Errors do
   @request_cancelled -32002
   @resource_not_found -32003
 
+  # MCP-specific error codes
+  @url_elicitation_required -32042
+
   # ============================================================================
   # Type Definitions
   # ============================================================================
@@ -69,6 +72,7 @@ defmodule Hermolaos.Protocol.Errors do
           | :request_timeout
           | :request_cancelled
           | :resource_not_found
+          | :url_elicitation_required
 
   defstruct [:code, :message, :data]
 
@@ -111,6 +115,10 @@ defmodule Hermolaos.Protocol.Errors do
   @doc "Returns the MCP resource not found error code (-32003)"
   @spec resource_not_found_code() :: integer()
   def resource_not_found_code, do: @resource_not_found
+
+  @doc "Returns the MCP URL elicitation required error code (-32042)"
+  @spec url_elicitation_required_code() :: integer()
+  def url_elicitation_required_code, do: @url_elicitation_required
 
   # ============================================================================
   # Error Constructors
@@ -234,6 +242,16 @@ defmodule Hermolaos.Protocol.Errors do
     %__MODULE__{code: @resource_not_found, message: "Resource not found: #{uri}", data: nil}
   end
 
+  @doc """
+  Creates a URL elicitation required error.
+
+  Used when a server requires URL-based elicitation for an operation.
+  """
+  @spec url_elicitation_required(term()) :: t()
+  def url_elicitation_required(data \\ nil) do
+    %__MODULE__{code: @url_elicitation_required, message: "URL elicitation required", data: data}
+  end
+
   # ============================================================================
   # Conversion Functions
   # ============================================================================
@@ -321,6 +339,7 @@ defmodule Hermolaos.Protocol.Errors do
   def code_to_name(@request_timeout), do: :request_timeout
   def code_to_name(@request_cancelled), do: :request_cancelled
   def code_to_name(@resource_not_found), do: :resource_not_found
+  def code_to_name(@url_elicitation_required), do: :url_elicitation_required
   def code_to_name(_), do: :unknown
 
   @doc """
@@ -335,7 +354,14 @@ defmodule Hermolaos.Protocol.Errors do
       false
   """
   @spec standard_error?(integer()) :: boolean()
-  def standard_error?(code) when code in [@parse_error, @invalid_request, @method_not_found, @invalid_params, @internal_error] do
+  def standard_error?(code)
+      when code in [
+             @parse_error,
+             @invalid_request,
+             @method_not_found,
+             @invalid_params,
+             @internal_error
+           ] do
     true
   end
 

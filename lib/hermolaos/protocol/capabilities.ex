@@ -39,23 +39,20 @@ defmodule Hermolaos.Protocol.Capabilities do
       end
   """
 
-  @type client_capabilities :: %{
-          optional(:roots) => %{optional(:listChanged) => boolean()},
-          optional(:sampling) => %{}
-        }
+  @type client_capabilities :: %{optional(String.t()) => map()}
 
-  @type server_capabilities :: %{
-          optional(:tools) => %{optional(:listChanged) => boolean()},
-          optional(:resources) => %{
-            optional(:subscribe) => boolean(),
-            optional(:listChanged) => boolean()
-          },
-          optional(:prompts) => %{optional(:listChanged) => boolean()},
-          optional(:logging) => %{},
-          optional(:completions) => %{}
-        }
+  @type server_capabilities :: %{optional(String.t()) => map() | boolean()}
 
-  @type capability :: :roots | :sampling | :tools | :resources | :prompts | :logging | :completions
+  @type capability ::
+          :roots
+          | :sampling
+          | :elicitation
+          | :tasks
+          | :tools
+          | :resources
+          | :prompts
+          | :logging
+          | :completions
 
   # ============================================================================
   # Default Capabilities
@@ -105,12 +102,15 @@ defmodule Hermolaos.Protocol.Capabilities do
   - `:roots` - Enable roots capability (default: true)
   - `:roots_list_changed` - Enable roots change notifications (default: true)
   - `:sampling` - Enable sampling capability (default: false)
+  - `:elicitation` - Enable elicitation capability (default: false)
+  - `:tasks` - Enable tasks capability (default: false)
 
   ## Examples
 
       caps = Hermolaos.Protocol.Capabilities.build_client_capabilities(
         roots: true,
-        sampling: true
+        sampling: true,
+        elicitation: true
       )
   """
   @spec build_client_capabilities(keyword()) :: client_capabilities()
@@ -136,6 +136,20 @@ defmodule Hermolaos.Protocol.Capabilities do
     caps =
       if Keyword.get(opts, :sampling, false) do
         Map.put(caps, "sampling", %{})
+      else
+        caps
+      end
+
+    caps =
+      if Keyword.get(opts, :elicitation, false) do
+        Map.put(caps, "elicitation", %{"form" => true, "url" => true})
+      else
+        caps
+      end
+
+    caps =
+      if Keyword.get(opts, :tasks, false) do
+        Map.put(caps, "tasks", %{})
       else
         caps
       end
@@ -226,6 +240,24 @@ defmodule Hermolaos.Protocol.Capabilities do
   def from_init_response(_), do: {:error, :missing_capabilities}
 
   @doc """
+  Extracts server instructions from an initialize response.
+
+  The `instructions` field is an optional string that describes how to use the server.
+
+  ## Examples
+
+      response = %{"instructions" => "Use the search tool to find files."}
+      {:ok, instructions} = Hermolaos.Protocol.Capabilities.instructions_from_response(response)
+  """
+  @spec instructions_from_response(map()) :: {:ok, String.t()} | {:error, :no_instructions}
+  def instructions_from_response(%{"instructions" => instructions})
+      when is_binary(instructions) do
+    {:ok, instructions}
+  end
+
+  def instructions_from_response(_), do: {:error, :no_instructions}
+
+  @doc """
   Extracts server info from an initialize response.
 
   ## Examples
@@ -259,7 +291,7 @@ defmodule Hermolaos.Protocol.Capabilities do
   # Protocol Version Support
   # ============================================================================
 
-  @supported_versions ["2025-03-26", "2025-06-18", "2025-11-25", "2024-11-05"]
+  @supported_versions ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 
   @doc """
   Returns the list of supported protocol versions.
@@ -322,6 +354,8 @@ defmodule Hermolaos.Protocol.Capabilities do
 
   defp capability_key(:roots), do: "roots"
   defp capability_key(:sampling), do: "sampling"
+  defp capability_key(:elicitation), do: "elicitation"
+  defp capability_key(:tasks), do: "tasks"
   defp capability_key(:tools), do: "tools"
   defp capability_key(:resources), do: "resources"
   defp capability_key(:prompts), do: "prompts"

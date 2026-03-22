@@ -238,4 +238,29 @@ defmodule Hermolaos.Protocol.ErrorsTest do
       refute Errors.retriable?(error)
     end
   end
+
+  describe "url_elicitation_required/1" do
+    test "creates url_elicitation_required error" do
+      error = Errors.url_elicitation_required()
+      assert error.code == -32042
+      assert error.message == "URL elicitation required"
+    end
+
+    test "creates url_elicitation_required error with data" do
+      error = Errors.url_elicitation_required(%{url: "https://example.com"})
+      assert error.data == %{url: "https://example.com"}
+    end
+  end
+
+  describe "url_elicitation_required_code/0" do
+    test "returns -32042" do
+      assert Errors.url_elicitation_required_code() == -32042
+    end
+  end
+
+  describe "code_to_name/1 for new codes" do
+    test "returns :url_elicitation_required for -32042" do
+      assert Errors.code_to_name(-32042) == :url_elicitation_required
+    end
+  end
 end

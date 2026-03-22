@@ -75,7 +75,9 @@ defmodule Hermolaos.Protocol.JsonRpcTest do
     end
 
     test "includes data when provided" do
-      json = JsonRpc.encode_error_response(1, -32600, "Invalid Request", %{"detail" => "missing field"})
+      json =
+        JsonRpc.encode_error_response(1, -32600, "Invalid Request", %{"detail" => "missing field"})
+
       decoded = Jason.decode!(json)
 
       assert decoded["error"]["data"] == %{"detail" => "missing field"}
@@ -165,7 +167,12 @@ defmodule Hermolaos.Protocol.JsonRpcTest do
     end
 
     test "classifies error response" do
-      msg = %{"jsonrpc" => "2.0", "id" => 1, "error" => %{"code" => -32600, "message" => "Invalid"}}
+      msg = %{
+        "jsonrpc" => "2.0",
+        "id" => 1,
+        "error" => %{"code" => -32600, "message" => "Invalid"}
+      }
+
       assert {:ok, {:error_response, ^msg}} = JsonRpc.classify_message(msg)
     end
   end
@@ -175,7 +182,10 @@ defmodule Hermolaos.Protocol.JsonRpcTest do
       assert :request == JsonRpc.message_type(%{"jsonrpc" => "2.0", "id" => 1, "method" => "x"})
       assert :notification == JsonRpc.message_type(%{"jsonrpc" => "2.0", "method" => "x"})
       assert :response == JsonRpc.message_type(%{"jsonrpc" => "2.0", "id" => 1, "result" => %{}})
-      assert :error_response == JsonRpc.message_type(%{"jsonrpc" => "2.0", "id" => 1, "error" => %{}})
+
+      assert :error_response ==
+               JsonRpc.message_type(%{"jsonrpc" => "2.0", "id" => 1, "error" => %{}})
+
       assert :unknown == JsonRpc.message_type(%{"foo" => "bar"})
     end
   end

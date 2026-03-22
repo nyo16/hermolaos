@@ -72,6 +72,8 @@ defmodule Hermolaos.Transport.Http do
           owner: pid(),
           url: String.t(),
           session_id: String.t() | nil,
+          protocol_version: String.t() | nil,
+          last_event_id: String.t() | nil,
           headers: [{String.t(), String.t()}],
           req_options: keyword(),
           connect_timeout: pos_integer(),
@@ -165,6 +167,26 @@ defmodule Hermolaos.Transport.Http do
   end
 
   @doc """
+  Sets the negotiated protocol version for the `MCP-Protocol-Version` header.
+
+  Called by the connection after a successful initialization handshake.
+  """
+  @spec set_protocol_version(GenServer.server(), String.t()) :: :ok
+  def set_protocol_version(transport, version) when is_binary(version) do
+    GenServer.cast(transport, {:set_protocol_version, version})
+  end
+
+  @doc """
+  Terminates the MCP session by sending an HTTP DELETE request.
+
+  Per the 2025-11-25 spec, clients SHOULD send DELETE to explicitly terminate a session.
+  """
+  @spec terminate_session(GenServer.server()) :: :ok | {:error, term()}
+  def terminate_session(transport) do
+    GenServer.call(transport, :terminate_session)
+  end
+
+  @doc """
   Checks if the transport is connected.
   """
   @impl Hermolaos.Transport
@@ -199,6 +221,8 @@ defmodule Hermolaos.Transport.Http do
       owner: owner,
       url: url,
       session_id: nil,
+      protocol_version: nil,
+      last_event_id: nil,
       headers: headers,
       req_options: req_options,
       connect_timeout: connect_timeout,
@@ -252,6 +276,20 @@ defmodule Hermolaos.Transport.Http do
   end
 
   @impl GenServer
+  def handle_call(:terminate_session, _from, %{session_id: nil} = state) do
+    {:reply, :ok, state}
+  end
+
+  def handle_call(:terminate_session, _from, state) do
+    result = do_delete_session(state)
+    {:reply, result, %{state | session_id: nil}}
+  end
+
+  @impl GenServer
+  def handle_cast({:set_protocol_version, version}, state) do
+    {:noreply, %{state | protocol_version: version}}
+  end
+
   def handle_cast({:send, message}, state) do
     # Fire and forget
     Task.start(fn ->
@@ -267,7 +305,7 @@ defmodule Hermolaos.Transport.Http do
 
     new_state =
       case result do
-        {:ok, session_id, messages} ->
+        {:ok, session_id, messages, last_event_id} ->
           # Deliver messages to owner
           for msg <- messages do
             send(state.owner, {:transport_message, self(), msg})
@@ -275,6 +313,7 @@ defmodule Hermolaos.Transport.Http do
 
           state
           |> maybe_update_session_id(session_id)
+          |> maybe_update_last_event_id(last_event_id)
           |> update_stats(:responses_received)
 
         {:error, reason} ->
@@ -286,7 +325,7 @@ defmodule Hermolaos.Transport.Http do
     # Reply to the caller
     if from do
       case result do
-        {:ok, _, _} -> GenServer.reply(from, :ok)
+        {:ok, _, _, _} -> GenServer.reply(from, :ok)
         {:error, reason} -> GenServer.reply(from, {:error, reason})
       end
     end
@@ -340,11 +379,36 @@ defmodule Hermolaos.Transport.Http do
     end
   end
 
+  defp do_delete_session(state) do
+    headers = build_headers(state)
+
+    req_opts =
+      [
+        url: state.url,
+        method: :delete,
+        headers: headers,
+        connect_options: [timeout: state.connect_timeout],
+        receive_timeout: state.receive_timeout
+      ] ++ state.req_options
+
+    case Req.request(req_opts) do
+      {:ok, _response} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
   defp build_headers(state) do
     base_headers = [
       {"accept", "application/json, text/event-stream"},
       {"content-type", "application/json"}
     ]
+
+    protocol_version_header =
+      if state.protocol_version do
+        [{"mcp-protocol-version", state.protocol_version}]
+      else
+        []
+      end
 
     session_header =
       if state.session_id do
@@ -353,20 +417,28 @@ defmodule Hermolaos.Transport.Http do
         []
       end
 
-    base_headers ++ session_header ++ state.headers
+    last_event_id_header =
+      if state.last_event_id do
+        [{"last-event-id", state.last_event_id}]
+      else
+        []
+      end
+
+    base_headers ++
+      protocol_version_header ++ session_header ++ last_event_id_header ++ state.headers
+  end
+
+  defp handle_response(%{status: 202}) do
+    # 202 Accepted - no content (for notifications/responses sent by client)
+    {:ok, nil, [], nil}
   end
 
   defp handle_response(%{status: status} = response) when status in 200..299 do
     session_id = get_session_id(response.headers)
     content_type = get_content_type(response.headers)
 
-    messages = parse_response_body(response.body, content_type)
-    {:ok, session_id, messages}
-  end
-
-  defp handle_response(%{status: 202}) do
-    # 202 Accepted - no content (for notifications)
-    {:ok, nil, []}
+    {messages, last_event_id} = parse_response_body(response.body, content_type)
+    {:ok, session_id, messages, last_event_id}
   end
 
   defp handle_response(%{status: status, body: body}) do
@@ -375,15 +447,18 @@ defmodule Hermolaos.Transport.Http do
 
   defp parse_response_body(body, _content_type) when is_map(body) do
     # Req already decoded JSON
-    [body]
+    {[body], nil}
   end
 
   defp parse_response_body(body, "application/json" <> _) when is_binary(body) do
-    case Jason.decode(body) do
-      {:ok, decoded} when is_map(decoded) -> [decoded]
-      {:ok, decoded} when is_list(decoded) -> decoded
-      _ -> []
-    end
+    messages =
+      case Jason.decode(body) do
+        {:ok, decoded} when is_map(decoded) -> [decoded]
+        {:ok, decoded} when is_list(decoded) -> decoded
+        _ -> []
+      end
+
+    {messages, nil}
   end
 
   defp parse_response_body(body, "text/event-stream" <> _) when is_binary(body) do
@@ -391,33 +466,55 @@ defmodule Hermolaos.Transport.Http do
   end
 
   defp parse_response_body(_body, _content_type) do
-    []
+    {[], nil}
   end
 
+  # Parses SSE stream, extracting messages and tracking the last event ID
+  # for resumability per the 2025-11-25 spec.
   defp parse_sse_stream(body) do
-    body
-    |> String.split("\n\n")
-    |> Enum.flat_map(&parse_sse_event/1)
+    events = String.split(body, "\n\n")
+
+    {messages, last_id} =
+      Enum.reduce(events, {[], nil}, fn event, {msgs, last_id} ->
+        {new_msgs, event_id} = parse_sse_event(event)
+        {msgs ++ new_msgs, event_id || last_id}
+      end)
+
+    {messages, last_id}
   end
 
   defp parse_sse_event(event) do
     lines = String.split(event, "\n")
 
-    data =
-      lines
-      |> Enum.filter(&String.starts_with?(&1, "data:"))
-      |> Enum.map(&String.trim_leading(&1, "data:"))
-      |> Enum.map(&String.trim/1)
-      |> Enum.join("\n")
+    {data_lines, id} =
+      Enum.reduce(lines, {[], nil}, fn line, {data_acc, id_acc} ->
+        cond do
+          String.starts_with?(line, "data:") ->
+            value = line |> String.trim_leading("data:") |> String.trim()
+            {data_acc ++ [value], id_acc}
 
-    if data != "" do
-      case Jason.decode(data) do
-        {:ok, decoded} when is_map(decoded) -> [decoded]
-        _ -> []
+          String.starts_with?(line, "id:") ->
+            value = line |> String.trim_leading("id:") |> String.trim()
+            {data_acc, value}
+
+          true ->
+            {data_acc, id_acc}
+        end
+      end)
+
+    data = Enum.join(data_lines, "\n")
+
+    messages =
+      if data != "" do
+        case Jason.decode(data) do
+          {:ok, decoded} when is_map(decoded) -> [decoded]
+          _ -> []
+        end
+      else
+        []
       end
-    else
-      []
-    end
+
+    {messages, id}
   end
 
   defp get_session_id(headers) do
@@ -432,7 +529,10 @@ defmodule Hermolaos.Transport.Http do
     name_lower = String.downcase(name)
 
     Enum.find_value(headers, fn
-      {k, v} when is_binary(k) ->
+      {k, [v | _]} when is_binary(k) and is_binary(v) ->
+        if String.downcase(k) == name_lower, do: v
+
+      {k, v} when is_binary(k) and is_binary(v) ->
         if String.downcase(k) == name_lower, do: v
 
       {k, v} when is_list(k) ->
@@ -445,6 +545,9 @@ defmodule Hermolaos.Transport.Http do
 
   defp maybe_update_session_id(state, nil), do: state
   defp maybe_update_session_id(state, session_id), do: %{state | session_id: session_id}
+
+  defp maybe_update_last_event_id(state, nil), do: state
+  defp maybe_update_last_event_id(state, id), do: %{state | last_event_id: id}
 
   defp update_stats(state, :requests_sent) do
     update_in(state.stats.requests_sent, &(&1 + 1))

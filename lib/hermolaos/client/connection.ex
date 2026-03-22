@@ -73,6 +73,7 @@ defmodule Hermolaos.Client.Connection do
           tracker_pid: pid() | nil,
           server_info: map() | nil,
           server_capabilities: map() | nil,
+          server_instructions: String.t() | nil,
           client_capabilities: map(),
           client_info: map(),
           protocol_version: String.t() | nil,
@@ -86,7 +87,7 @@ defmodule Hermolaos.Client.Connection do
 
   @client_info %{
     "name" => "Hermolaos",
-    "version" => "0.1.0"
+    "version" => Hermolaos.MixProject.project()[:version]
   }
 
   # ============================================================================
@@ -216,6 +217,14 @@ defmodule Hermolaos.Client.Connection do
   end
 
   @doc """
+  Gets server instructions from the initialization response.
+  """
+  @spec instructions(t()) :: {:ok, String.t()} | {:error, :not_initialized | :no_instructions}
+  def instructions(conn) do
+    GenServer.call(conn, :instructions)
+  end
+
+  @doc """
   Disconnects from the server.
   """
   @spec disconnect(t()) :: :ok
@@ -250,6 +259,7 @@ defmodule Hermolaos.Client.Connection do
       tracker_pid: tracker_pid,
       server_info: nil,
       server_capabilities: nil,
+      server_instructions: nil,
       client_capabilities: capabilities,
       client_info: client_info,
       protocol_version: nil,
@@ -279,11 +289,31 @@ defmodule Hermolaos.Client.Connection do
   end
 
   @impl GenServer
-  def handle_call(:server_capabilities, _from, %{status: :ready, server_capabilities: caps} = state) do
+  def handle_call(
+        :server_capabilities,
+        _from,
+        %{status: :ready, server_capabilities: caps} = state
+      ) do
     {:reply, {:ok, caps}, state}
   end
 
   def handle_call(:server_capabilities, _from, state) do
+    {:reply, {:error, :not_initialized}, state}
+  end
+
+  def handle_call(:instructions, _from, %{status: :ready, server_instructions: nil} = state) do
+    {:reply, {:error, :no_instructions}, state}
+  end
+
+  def handle_call(
+        :instructions,
+        _from,
+        %{status: :ready, server_instructions: instructions} = state
+      ) do
+    {:reply, {:ok, instructions}, state}
+  end
+
+  def handle_call(:instructions, _from, state) do
     {:reply, {:error, :not_initialized}, state}
   end
 
@@ -443,6 +473,11 @@ defmodule Hermolaos.Client.Connection do
       GenServer.stop(state.tracker_pid)
     end
 
+    # Terminate HTTP session before closing transport
+    if state.transport_type == :http && state.transport_pid && Process.alive?(state.transport_pid) do
+      Http.terminate_session(state.transport_pid)
+    end
+
     # Close transport
     if state.transport_pid && Process.alive?(state.transport_pid) do
       state.transport_mod.close(state.transport_pid)
@@ -532,10 +567,16 @@ defmodule Hermolaos.Client.Connection do
   end
 
   defp handle_init_response(result, state) do
-    # Extract server info and capabilities
+    # Extract server info, capabilities, and optional instructions
     {:ok, server_caps} = Capabilities.from_init_response(result)
     {:ok, server_info} = Capabilities.server_info_from_response(result)
     {:ok, protocol_version} = Capabilities.protocol_version_from_response(result)
+
+    instructions =
+      case Capabilities.instructions_from_response(result) do
+        {:ok, text} -> text
+        {:error, :no_instructions} -> nil
+      end
 
     Logger.info("[Connection] Connected to #{server_info["name"]} v#{server_info["version"]}")
 
@@ -545,11 +586,17 @@ defmodule Hermolaos.Client.Connection do
 
     case state.transport_mod.send_message(state.transport_pid, msg) do
       :ok ->
+        # Set protocol version on HTTP transport for MCP-Protocol-Version header
+        if state.transport_type == :http do
+          Http.set_protocol_version(state.transport_pid, protocol_version)
+        end
+
         new_state = %{
           state
           | status: :ready,
             server_info: server_info,
             server_capabilities: server_caps,
+            server_instructions: instructions,
             protocol_version: protocol_version
         }
 
@@ -576,6 +623,11 @@ defmodule Hermolaos.Client.Connection do
 
         "sampling/createMessage" ->
           {:error, Messages.sampling_not_supported_error()}
+
+        "elicitation/create" ->
+          # Elicitation requires user interaction — route to notification handler.
+          # Default: decline the elicitation request.
+          {:ok, %{"action" => "decline"}}
 
         _ ->
           {:error, %{"code" => -32601, "message" => "Method not found: #{method}"}}

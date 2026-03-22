@@ -1,7 +1,7 @@
 defmodule Hermolaos.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.4.0"
   @source_url "https://github.com/nyo16/hermolaos"
 
   def project do
@@ -20,7 +20,13 @@ defmodule Hermolaos.MixProject do
       package: package(),
       docs: docs(),
       source_url: @source_url,
-      homepage_url: @source_url
+      homepage_url: @source_url,
+
+      # Dialyzer
+      dialyzer: [
+        plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+        plt_add_apps: [:mix, :ex_unit]
+      ]
     ]
   end
 
@@ -42,7 +48,10 @@ defmodule Hermolaos.MixProject do
       # Option validation
       {:nimble_options, "~> 1.1"},
       # Documentation
-      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
+      # Static analysis
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       # Testing
       {:mox, "~> 1.1", only: :test},
       {:bypass, "~> 2.1", only: :test}
@@ -76,13 +85,13 @@ defmodule Hermolaos.MixProject do
         "Public API": [
           Hermolaos
         ],
-        "Protocol": [
+        Protocol: [
           Hermolaos.Protocol.Capabilities,
           Hermolaos.Protocol.Errors,
           Hermolaos.Protocol.JsonRpc,
           Hermolaos.Protocol.Messages
         ],
-        "Transport": [
+        Transport: [
           Hermolaos.Transport,
           Hermolaos.Transport.Behaviour,
           Hermolaos.Transport.Http,
@@ -94,7 +103,7 @@ defmodule Hermolaos.MixProject do
           Hermolaos.Client.NotificationHandler,
           Hermolaos.Client.RequestTracker
         ],
-        "Other": [
+        Other: [
           Hermolaos.Error,
           Hermolaos.Pool
         ]
